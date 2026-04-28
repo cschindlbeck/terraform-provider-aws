@@ -224,7 +224,6 @@ func (r *automationRuleV2Resource) Update(ctx context.Context, request resource.
 		!new.RuleName.Equal(old.RuleName) ||
 		!new.RuleOrder.Equal(old.RuleOrder) ||
 		!new.RuleStatus.Equal(old.RuleStatus) {
-
 		var actions []awstypes.AutomationRulesActionV2
 		if err := json.Unmarshal([]byte(new.ActionsJSON.ValueString()), &actions); err != nil {
 			response.Diagnostics.AddError("invalid actions_json", err.Error())
