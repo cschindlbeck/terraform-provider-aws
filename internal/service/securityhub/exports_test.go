@@ -9,6 +9,7 @@ var (
 	ResourceAccountV2                      = newAccountV2Resource
 	ResourceActionTarget                   = resourceActionTarget
 	ResourceAutomationRule                 = newAutomationRuleResource
+	ResourceAutomationRuleV2               = newAutomationRuleV2Resource
 	ResourceConfigurationPolicy            = resourceConfigurationPolicy
 	ResourceConfigurationPolicyAssociation = resourceConfigurationPolicyAssociation
 	ResourceFindingAggregator              = resourceFindingAggregator
@@ -27,6 +28,7 @@ var (
 	FindActionTargetByARN                         = findActionTargetByARN
 	FindAdminAccountByID                          = findAdminAccountByID
 	FindAutomationRuleByARN                       = findAutomationRuleByARN
+	FindAutomationRuleV2ByARN                     = findAutomationRuleV2ByARN
 	FindConfigurationPolicyAssociationByID        = findConfigurationPolicyAssociationByID
 	FindConfigurationPolicyByID                   = findConfigurationPolicyByID
 	FindFindingAggregatorByARN                    = findFindingAggregatorByARN

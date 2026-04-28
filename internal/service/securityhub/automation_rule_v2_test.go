@@ -1,0 +1,445 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package securityhub_test
+
+import (
+	"context"
+	"fmt"
+	"testing"
+
+	"github.com/YakDriver/regexache"
+	"github.com/aws/aws-sdk-go-v2/service/securityhub"
+	"github.com/hashicorp/aws-sdk-go-base/v2/endpoints"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
+	"github.com/hashicorp/terraform-provider-aws/internal/acctest"
+	tfknownvalue "github.com/hashicorp/terraform-provider-aws/internal/acctest/knownvalue"
+	"github.com/hashicorp/terraform-provider-aws/internal/retry"
+	tfsecurityhub "github.com/hashicorp/terraform-provider-aws/internal/service/securityhub"
+	"github.com/hashicorp/terraform-provider-aws/names"
+)
+
+func testAccAutomationRuleV2_basic(t *testing.T) {
+	ctx := acctest.Context(t)
+	var rule securityhub.GetAutomationRuleV2Output
+	resourceName := "aws_securityhub_automation_rule_v2.test"
+	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
+
+	acctest.Test(ctx, t, resource.TestCase{
+		PreCheck:                 func() { acctest.PreCheck(ctx, t) },
+		ErrorCheck:               acctest.ErrorCheck(t, names.SecurityHubServiceID),
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckAutomationRuleV2Destroy(ctx, t),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAutomationRuleV2Config_basic(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAutomationRuleV2Exists(ctx, t, resourceName, &rule),
+				),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionCreate),
+					},
+				},
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New(names.AttrARN), tfknownvalue.RegionalARNRegexp("securityhub", regexache.MustCompile(`automation-rule/v2/.+`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rule_name"), knownvalue.StringExact(rName)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rule_order"), knownvalue.Float64Exact(100)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rule_status"), knownvalue.StringExact("ENABLED")),
+				},
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testAccAutomationRuleV2_disappears(t *testing.T) {
+	ctx := acctest.Context(t)
+	var rule securityhub.GetAutomationRuleV2Output
+	resourceName := "aws_securityhub_automation_rule_v2.test"
+	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
+
+	acctest.Test(ctx, t, resource.TestCase{
+		PreCheck:                 func() { acctest.PreCheck(ctx, t) },
+		ErrorCheck:               acctest.ErrorCheck(t, names.SecurityHubServiceID),
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckAutomationRuleV2Destroy(ctx, t),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAutomationRuleV2Config_basic(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAutomationRuleV2Exists(ctx, t, resourceName, &rule),
+					acctest.CheckFrameworkResourceDisappears(ctx, t, tfsecurityhub.ResourceAutomationRuleV2, resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionCreate),
+					},
+					PostApplyPostRefresh: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionCreate),
+					},
+				},
+			},
+		},
+	})
+}
+
+func testAccAutomationRuleV2_update(t *testing.T) {
+	ctx := acctest.Context(t)
+	var rule securityhub.GetAutomationRuleV2Output
+	resourceName := "aws_securityhub_automation_rule_v2.test"
+	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
+
+	acctest.Test(ctx, t, resource.TestCase{
+		PreCheck:                 func() { acctest.PreCheck(ctx, t) },
+		ErrorCheck:               acctest.ErrorCheck(t, names.SecurityHubServiceID),
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckAutomationRuleV2Destroy(ctx, t),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAutomationRuleV2Config_basic(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAutomationRuleV2Exists(ctx, t, resourceName, &rule),
+				),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionCreate),
+					},
+				},
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rule_status"), knownvalue.StringExact("ENABLED")),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rule_order"), knownvalue.Float64Exact(100)),
+				},
+			},
+			{
+				Config: testAccAutomationRuleV2Config_updated(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAutomationRuleV2Exists(ctx, t, resourceName, &rule),
+				),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+					},
+				},
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rule_status"), knownvalue.StringExact("DISABLED")),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rule_order"), knownvalue.Float64Exact(200)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New(names.AttrDescription), knownvalue.StringExact("updated description")),
+				},
+			},
+		},
+	})
+}
+
+func testAccAutomationRuleV2_tags(t *testing.T) {
+	ctx := acctest.Context(t)
+	var rule securityhub.GetAutomationRuleV2Output
+	resourceName := "aws_securityhub_automation_rule_v2.test"
+	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
+
+	acctest.Test(ctx, t, resource.TestCase{
+		PreCheck:                 func() { acctest.PreCheck(ctx, t) },
+		ErrorCheck:               acctest.ErrorCheck(t, names.SecurityHubServiceID),
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckAutomationRuleV2Destroy(ctx, t),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAutomationRuleV2Config_tags1(rName, acctest.CtKey1, acctest.CtValue1),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAutomationRuleV2Exists(ctx, t, resourceName, &rule),
+				),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionCreate),
+					},
+				},
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New(names.AttrTags), knownvalue.MapExact(map[string]knownvalue.Check{
+						acctest.CtKey1: knownvalue.StringExact(acctest.CtValue1),
+					})),
+				},
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAutomationRuleV2Config_tags2(rName, acctest.CtKey1, acctest.CtValue1Updated, acctest.CtKey2, acctest.CtValue2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAutomationRuleV2Exists(ctx, t, resourceName, &rule),
+				),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+					},
+				},
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New(names.AttrTags), knownvalue.MapExact(map[string]knownvalue.Check{
+						acctest.CtKey1: knownvalue.StringExact(acctest.CtValue1Updated),
+						acctest.CtKey2: knownvalue.StringExact(acctest.CtValue2),
+					})),
+				},
+			},
+			{
+				Config: testAccAutomationRuleV2Config_tags1(rName, acctest.CtKey2, acctest.CtValue2),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAutomationRuleV2Exists(ctx, t, resourceName, &rule),
+				),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+					},
+				},
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New(names.AttrTags), knownvalue.MapExact(map[string]knownvalue.Check{
+						acctest.CtKey2: knownvalue.StringExact(acctest.CtValue2),
+					})),
+				},
+			},
+		},
+	})
+}
+
+func testAccCheckAutomationRuleV2Exists(ctx context.Context, t *testing.T, n string, v *securityhub.GetAutomationRuleV2Output) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[n]
+		if !ok {
+			return fmt.Errorf("Not found: %s", n)
+		}
+
+		conn := acctest.ProviderMeta(ctx, t).SecurityHubClient(ctx)
+
+		output, err := tfsecurityhub.FindAutomationRuleV2ByARN(ctx, conn, rs.Primary.Attributes[names.AttrARN])
+
+		if err != nil {
+			return err
+		}
+
+		*v = *output
+
+		return nil
+	}
+}
+
+func testAccCheckAutomationRuleV2Destroy(ctx context.Context, t *testing.T) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		conn := acctest.ProviderMeta(ctx, t).SecurityHubClient(ctx)
+
+		for _, rs := range s.RootModule().Resources {
+			if rs.Type != "aws_securityhub_automation_rule_v2" {
+				continue
+			}
+
+			_, err := tfsecurityhub.FindAutomationRuleV2ByARN(ctx, conn, rs.Primary.Attributes[names.AttrARN])
+
+			if retry.NotFound(err) {
+				continue
+			}
+
+			if err != nil {
+				return err
+			}
+
+			return fmt.Errorf("Security Hub V2 Automation Rule %s still exists", rs.Primary.Attributes[names.AttrARN])
+		}
+
+		return nil
+	}
+}
+
+func testAccAutomationRuleV2Config_base() string {
+	return fmt.Sprintf(`
+resource "aws_securityhub_account_v2" "test" {}
+
+resource "aws_securityhub_aggregator_v2" "test" {
+  region_linking_mode = "SPECIFIED_REGIONS"
+  linked_regions      = [%[1]q]
+
+  depends_on = [aws_securityhub_account_v2.test]
+}
+`, endpoints.UsEast1RegionID)
+}
+
+func testAccAutomationRuleV2Config_basic(rName string) string {
+	return acctest.ConfigCompose(testAccAutomationRuleV2Config_base(), fmt.Sprintf(`
+resource "aws_securityhub_automation_rule_v2" "test" {
+  rule_name   = %[1]q
+  description = "test description"
+  rule_order  = 100
+  rule_status = "ENABLED"
+
+  criteria_json = jsonencode({
+    CompositeFilters = [
+      {
+        StringFilters = [
+          {
+            FieldName = "metadata.product.name"
+            Filter = {
+              Comparison = "EQUALS"
+              Value      = "GuardDuty"
+            }
+          }
+        ]
+      }
+    ]
+    CompositeOperator = "AND"
+  })
+
+  actions_json = jsonencode([
+    {
+      Type = "FINDING_FIELDS_UPDATE"
+      FindingFieldsUpdate = {
+        SeverityId = 2
+        StatusId   = 1
+        Comment    = "Auto-updated by automation rule"
+      }
+    }
+  ])
+
+  depends_on = [aws_securityhub_aggregator_v2.test]
+}
+`, rName))
+}
+
+func testAccAutomationRuleV2Config_updated(rName string) string {
+	return acctest.ConfigCompose(testAccAutomationRuleV2Config_base(), fmt.Sprintf(`
+resource "aws_securityhub_automation_rule_v2" "test" {
+  rule_name   = %[1]q
+  description = "updated description"
+  rule_order  = 200
+  rule_status = "DISABLED"
+
+  criteria_json = jsonencode({
+    CompositeFilters = [
+      {
+        StringFilters = [
+          {
+            FieldName = "metadata.product.name"
+            Filter = {
+              Comparison = "EQUALS"
+              Value      = "Inspector"
+            }
+          }
+        ]
+      }
+    ]
+    CompositeOperator = "AND"
+  })
+
+  actions_json = jsonencode([
+    {
+      Type = "FINDING_FIELDS_UPDATE"
+      FindingFieldsUpdate = {
+        SeverityId = 3
+        StatusId   = 2
+        Comment    = "Updated by automation rule"
+      }
+    }
+  ])
+
+  depends_on = [aws_securityhub_aggregator_v2.test]
+}
+`, rName))
+}
+
+func testAccAutomationRuleV2Config_tags1(rName, tagKey1, tagValue1 string) string {
+	return acctest.ConfigCompose(testAccAutomationRuleV2Config_base(), fmt.Sprintf(`
+resource "aws_securityhub_automation_rule_v2" "test" {
+  rule_name   = %[1]q
+  description = "test description"
+  rule_order  = 100
+  rule_status = "ENABLED"
+
+  criteria_json = jsonencode({
+    CompositeFilters = [
+      {
+        StringFilters = [
+          {
+            FieldName = "metadata.product.name"
+            Filter = {
+              Comparison = "EQUALS"
+              Value      = "GuardDuty"
+            }
+          }
+        ]
+      }
+    ]
+    CompositeOperator = "AND"
+  })
+
+  actions_json = jsonencode([
+    {
+      Type = "FINDING_FIELDS_UPDATE"
+      FindingFieldsUpdate = {
+        SeverityId = 2
+        StatusId   = 1
+        Comment    = "Auto-updated"
+      }
+    }
+  ])
+
+  tags = {
+    %[2]q = %[3]q
+  }
+
+  depends_on = [aws_securityhub_aggregator_v2.test]
+}
+`, rName, tagKey1, tagValue1))
+}
+
+func testAccAutomationRuleV2Config_tags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return acctest.ConfigCompose(testAccAutomationRuleV2Config_base(), fmt.Sprintf(`
+resource "aws_securityhub_automation_rule_v2" "test" {
+  rule_name   = %[1]q
+  description = "test description"
+  rule_order  = 100
+  rule_status = "ENABLED"
+
+  criteria_json = jsonencode({
+    CompositeFilters = [
+      {
+        StringFilters = [
+          {
+            FieldName = "metadata.product.name"
+            Filter = {
+              Comparison = "EQUALS"
+              Value      = "GuardDuty"
+            }
+          }
+        ]
+      }
+    ]
+    CompositeOperator = "AND"
+  })
+
+  actions_json = jsonencode([
+    {
+      Type = "FINDING_FIELDS_UPDATE"
+      FindingFieldsUpdate = {
+        SeverityId = 2
+        StatusId   = 1
+        Comment    = "Auto-updated"
+      }
+    }
+  ])
+
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
+
+  depends_on = [aws_securityhub_aggregator_v2.test]
+}
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2))
+}
