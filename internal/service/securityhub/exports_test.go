@@ -7,6 +7,7 @@ package securityhub
 var (
 	ResourceAccount                        = resourceAccount
 	ResourceAccountV2                      = newAccountV2Resource
+	ResourceConnectorV2                    = newConnectorV2Resource
 	ResourceActionTarget                   = resourceActionTarget
 	ResourceAutomationRule                 = newAutomationRuleResource
 	ResourceConfigurationPolicy            = resourceConfigurationPolicy
@@ -24,6 +25,7 @@ var (
 
 	AccountHubARN                                 = accountHubARN
 	FindAccountV2                                 = findAccountV2
+	FindConnectorV2ByID                           = findConnectorV2ByID
 	FindActionTargetByARN                         = findActionTargetByARN
 	FindAdminAccountByID                          = findAdminAccountByID
 	FindAutomationRuleByARN                       = findAutomationRuleByARN

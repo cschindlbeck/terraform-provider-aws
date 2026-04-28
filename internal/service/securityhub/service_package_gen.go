@@ -62,6 +62,19 @@ func (p *servicePackage) FrameworkResources(ctx context.Context) []*inttypes.Ser
 			},
 		},
 		{
+			Factory:  newConnectorV2Resource,
+			TypeName: "aws_securityhub_connector_v2",
+			Name:     "Connector V2",
+			Tags: unique.Make(inttypes.ServicePackageResourceTags{
+				IdentifierAttribute: names.AttrARN,
+			}),
+			Region:   inttypes.ResourceRegionDefault(),
+			Identity: inttypes.RegionalARNIdentity(),
+			Import: inttypes.FrameworkImport{
+				WrappedImport: true,
+			},
+		},
+		{
 			Factory:  newStandardsControlAssociationResource,
 			TypeName: "aws_securityhub_standards_control_association",
 			Name:     "Standards Control Association",

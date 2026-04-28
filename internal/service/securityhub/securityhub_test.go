@@ -27,6 +27,12 @@ func TestAccSecurityHub_serial(t *testing.T) {
 			"tags":               testAccAccountV2_tags,
 			"Identity":           testAccSecurityHubAccountV2_identitySerial,
 		},
+		"ConnectorV2": {
+			acctest.CtBasic:      testAccConnectorV2_basic,
+			acctest.CtDisappears: testAccConnectorV2_disappears,
+			"description":        testAccConnectorV2_description,
+			"tags":               testAccConnectorV2_tags,
+		},
 		"AutomationRule": {
 			acctest.CtBasic:      testAccAutomationRule_basic,
 			"full":               testAccAutomationRule_full,
