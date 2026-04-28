@@ -10,6 +10,7 @@ import (
 
 	"github.com/YakDriver/regexache"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
+	"github.com/hashicorp/aws-sdk-go-base/v2/endpoints"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
@@ -265,16 +266,16 @@ func testAccCheckConnectorV2Destroy(ctx context.Context, t *testing.T) resource.
 }
 
 func testAccConnectorV2Config_base() string {
-	return `
+	return fmt.Sprintf(`
 resource "aws_securityhub_account_v2" "test" {}
 
 resource "aws_securityhub_aggregator_v2" "test" {
   region_linking_mode = "SPECIFIED_REGIONS"
-  linked_regions      = ["eu-west-1"]
+  linked_regions      = [%[1]q]
 
   depends_on = [aws_securityhub_account_v2.test]
 }
-`
+`, endpoints.EuWest1RegionID)
 }
 
 func testAccConnectorV2Config_basic(rName string) string {
