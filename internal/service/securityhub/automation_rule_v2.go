@@ -166,7 +166,7 @@ func (r *automationRuleV2Resource) Read(ctx context.Context, request resource.Re
 	if rule.Actions != nil {
 		actBytes, err := json.Marshal(rule.Actions)
 		if err == nil {
-			var raw []map[string]interface{}
+			var raw []map[string]any
 			if json.Unmarshal(actBytes, &raw) == nil {
 				for i := range raw {
 					for k, v := range raw[i] {
@@ -192,7 +192,7 @@ func (r *automationRuleV2Resource) Read(ctx context.Context, request resource.Re
 			critBytes, _ = json.Marshal(rule.Criteria)
 		}
 		if critBytes != nil {
-			var raw interface{}
+			var raw any
 			if json.Unmarshal(critBytes, &raw) == nil {
 				cleaned := stripV2Nulls(raw)
 				if finalBytes, err2 := json.Marshal(cleaned); err2 == nil {
@@ -310,10 +310,10 @@ func findAutomationRuleV2ByARN(ctx context.Context, conn *securityhub.Client, ar
 }
 
 // stripV2Nulls recursively removes null values and empty strings from JSON-deserialized data.
-func stripV2Nulls(v interface{}) interface{} {
+func stripV2Nulls(v any) any {
 	switch val := v.(type) {
-	case map[string]interface{}:
-		cleaned := make(map[string]interface{})
+	case map[string]any:
+		cleaned := make(map[string]any)
 		for k, v2 := range val {
 			if v2 == nil {
 				continue
@@ -330,8 +330,8 @@ func stripV2Nulls(v interface{}) interface{} {
 			return nil
 		}
 		return cleaned
-	case []interface{}:
-		var cleaned []interface{}
+	case []any:
+		var cleaned []any
 		for _, item := range val {
 			result := stripV2Nulls(item)
 			if result != nil {
