@@ -36,15 +36,6 @@ func validate[T Valueser[T]](ignoreCase bool) schema.SchemaValidateDiagFunc {
 	return validateSlow[T](id)
 }
 
-func FrameworkValidateIgnoreCase[T Valueser[T]]() validator.String {
-	return stringvalidator.OneOfCaseInsensitive(Values[T]()...)
-}
-
-// TODO Move to internal/framework/validators or replace with custom types.
-func FrameworkValidate[T Valueser[T]]() validator.String {
-	return stringvalidator.OneOf(Values[T]()...)
-}
-
 type validateIdentity struct {
 	typ        reflect.Type
 	ignoreCase bool
@@ -58,4 +49,13 @@ func validateSlow[T Valueser[T]](id validateIdentity) schema.SchemaValidateDiagF
 		validation.ToDiagFunc(validation.StringInSlice(Values[T](), id.ignoreCase)),
 	)
 	return s
+}
+
+func FrameworkValidateIgnoreCase[T Valueser[T]]() validator.String {
+	return stringvalidator.OneOfCaseInsensitive(Values[T]()...)
+}
+
+// TODO Move to internal/framework/validators or replace with custom types.
+func FrameworkValidate[T Valueser[T]]() validator.String {
+	return stringvalidator.OneOf(Values[T]()...)
 }

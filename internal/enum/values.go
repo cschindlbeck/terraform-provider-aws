@@ -32,14 +32,6 @@ func Values[T Valueser[T]]() []string {
 	return valuesSlow[T]()
 }
 
-func EnumSlice[T ~string](l ...T) []T {
-	return l
-}
-
-func Slice[T ~string](l ...T) []string {
-	return tfslices.Strings(l)
-}
-
 var valuesCache tfsync.Map[reflect.Type, []string]
 
 func valuesSlow[T Valueser[T]]() []string {
@@ -49,4 +41,12 @@ func valuesSlow[T Valueser[T]]() []string {
 		tfslices.Strings(EnumValues[T]()),
 	)
 	return s
+}
+
+func EnumSlice[T ~string](l ...T) []T {
+	return l
+}
+
+func Slice[T ~string](l ...T) []string {
+	return tfslices.Strings(l)
 }
