@@ -52,7 +52,7 @@ func resourceSpotInstanceRequest() *schema.Resource {
 			Delete: schema.DefaultTimeout(20 * time.Minute),
 		},
 
-		Schema: func() map[string]*schema.Schema {
+		SchemaFunc: func() map[string]*schema.Schema {
 			// The Spot Instance Request Schema is based on the AWS Instance schema.
 			s := resourceInstanceSchema()
 
@@ -159,7 +159,7 @@ func resourceSpotInstanceRequest() *schema.Resource {
 			}
 
 			return s
-		}(),
+		},
 	}
 }
 

@@ -92,7 +92,7 @@ func resourceInstance() *schema.Resource {
 			Delete: schema.DefaultTimeout(20 * time.Minute),
 		},
 
-		Schema: resourceInstanceSchema(),
+		SchemaFunc: resourceInstanceSchema,
 
 		CustomizeDiff: customdiff.All(
 			func(ctx context.Context, diff *schema.ResourceDiff, meta any) error {
