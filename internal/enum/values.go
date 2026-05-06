@@ -4,7 +4,10 @@
 package enum
 
 import (
+	"reflect"
+
 	tfslices "github.com/hashicorp/terraform-provider-aws/internal/slices"
+	tfsync "github.com/hashicorp/terraform-provider-aws/internal/sync"
 	inttypes "github.com/hashicorp/terraform-provider-aws/internal/types"
 )
 
@@ -18,7 +21,15 @@ func EnumValues[T Valueser[T]]() []T {
 }
 
 func Values[T Valueser[T]]() []string {
-	return tfslices.Strings(EnumValues[T]())
+	typ := reflect.TypeFor[T]()
+
+	s, ok := valuesCache.Load(typ)
+	if ok {
+		return s
+	}
+
+	// Separates the slow path so that the fast path can be inlined
+	return valuesSlow[T]()
 }
 
 func EnumSlice[T ~string](l ...T) []T {
@@ -27,4 +38,15 @@ func EnumSlice[T ~string](l ...T) []T {
 
 func Slice[T ~string](l ...T) []string {
 	return tfslices.Strings(l)
+}
+
+var valuesCache tfsync.Map[reflect.Type, []string]
+
+func valuesSlow[T Valueser[T]]() []string {
+	typ := reflect.TypeFor[T]()
+	s, _ := valuesCache.LoadOrStore(
+		typ,
+		tfslices.Strings(EnumValues[T]()),
+	)
+	return s
 }
