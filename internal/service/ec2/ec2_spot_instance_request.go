@@ -56,6 +56,11 @@ func resourceSpotInstanceRequest() *schema.Resource {
 			// The Spot Instance Request Schema is based on the AWS Instance schema.
 			s := resourceInstanceSchema()
 
+			// Remove attributes added for spot instances.
+			delete(s, "instance_lifecycle")
+			delete(s, "instance_market_options")
+			delete(s, "spot_instance_request_id")
+
 			// Everything on a spot instance is ForceNew (except tags/tags_all).
 			for k, v := range s {
 				if v.Computed && !v.Optional {
@@ -70,11 +75,6 @@ func resourceSpotInstanceRequest() *schema.Resource {
 				x.ForceNew = true
 				s[k] = &x
 			}
-
-			// Remove attributes added for spot instances.
-			delete(s, "instance_lifecycle")
-			delete(s, "instance_market_options")
-			delete(s, "spot_instance_request_id")
 
 			s["instance_interruption_behavior"] = &schema.Schema{
 				Type:             schema.TypeString,
