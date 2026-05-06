@@ -98,21 +98,21 @@ func tagFilters(ctx context.Context) []awstypes.Filter {
 //	  name   = "availabilityZone"
 //	  values = ["us-west-2a", "us-west-2b"]
 //	}
-func customFiltersSchema() *schema.Schema {
+var customFiltersSchema = sync.OnceValue(func() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeSet,
 		Optional: true,
 		Elem:     customFilterElement(),
 	}
-}
+})
 
-func customRequiredFiltersSchema() *schema.Schema {
+var customRequiredFiltersSchema = sync.OnceValue(func() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeSet,
 		Required: true,
 		Elem:     customFilterElement(),
 	}
-}
+})
 
 var customFilterElement = sync.OnceValue(func() *schema.Resource {
 	return &schema.Resource{
