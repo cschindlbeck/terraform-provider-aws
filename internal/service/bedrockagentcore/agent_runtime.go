@@ -284,6 +284,80 @@ func (r *agentRuntimeResource) Schema(ctx context.Context, request resource.Sche
 					},
 				},
 			},
+			"filesystem_configurations": schema.ListNestedBlock{
+				CustomType: fwtypes.NewListNestedObjectTypeOf[filesystemConfigurationModel](ctx),
+				Validators: []validator.List{
+					listvalidator.SizeAtMost(5),
+				},
+				NestedObject: schema.NestedBlockObject{
+					Blocks: map[string]schema.Block{
+						"session_storage": schema.ListNestedBlock{
+							CustomType: fwtypes.NewListNestedObjectTypeOf[sessionStorageConfigurationModel](ctx),
+							Validators: []validator.List{
+								listvalidator.SizeAtMost(1),
+								listvalidator.ExactlyOneOf(
+									path.MatchRelative().AtParent().AtName("session_storage"),
+									path.MatchRelative().AtParent().AtName("s3_files_access_point"),
+									path.MatchRelative().AtParent().AtName("efs_access_point"),
+								),
+							},
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"mount_path": schema.StringAttribute{
+										Required: true,
+										Validators: []validator.String{
+											stringvalidator.LengthBetween(6, 200),
+											stringvalidator.RegexMatches(regexache.MustCompile(`^/mnt/[a-zA-Z0-9._-]+/?$`), "must be under /mnt with exactly one subdirectory level"),
+										},
+									},
+								},
+							},
+						},
+						"s3_files_access_point": schema.ListNestedBlock{
+							CustomType: fwtypes.NewListNestedObjectTypeOf[s3FilesAccessPointConfigurationModel](ctx),
+							Validators: []validator.List{
+								listvalidator.SizeAtMost(1),
+							},
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"access_point_arn": schema.StringAttribute{
+										Required:   true,
+										CustomType: fwtypes.ARNType,
+									},
+									"mount_path": schema.StringAttribute{
+										Required: true,
+										Validators: []validator.String{
+											stringvalidator.LengthBetween(6, 200),
+											stringvalidator.RegexMatches(regexache.MustCompile(`^/mnt/[a-zA-Z0-9._-]+/?$`), "must be under /mnt with exactly one subdirectory level"),
+										},
+									},
+								},
+							},
+						},
+						"efs_access_point": schema.ListNestedBlock{
+							CustomType: fwtypes.NewListNestedObjectTypeOf[efsAccessPointConfigurationModel](ctx),
+							Validators: []validator.List{
+								listvalidator.SizeAtMost(1),
+							},
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"access_point_arn": schema.StringAttribute{
+										Required:   true,
+										CustomType: fwtypes.ARNType,
+									},
+									"mount_path": schema.StringAttribute{
+										Required: true,
+										Validators: []validator.String{
+											stringvalidator.LengthBetween(6, 200),
+											stringvalidator.RegexMatches(regexache.MustCompile(`^/mnt/[a-zA-Z0-9._-]+/?$`), "must be under /mnt with exactly one subdirectory level"),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			names.AttrTimeouts: timeouts.Block(ctx, timeouts.Opts{
 				Create: true,
 				Update: true,
@@ -686,6 +760,7 @@ type agentRuntimeResourceModel struct {
 	AuthorizerConfiguration    fwtypes.ListNestedObjectValueOf[authorizerConfigurationModel]    `tfsdk:"authorizer_configuration"`
 	Description                types.String                                                     `tfsdk:"description"`
 	EnvironmentVariables       fwtypes.MapOfString                                              `tfsdk:"environment_variables"`
+	FilesystemConfigurations   fwtypes.ListNestedObjectValueOf[filesystemConfigurationModel]    `tfsdk:"filesystem_configurations"`
 	LifecycleConfiguration     fwtypes.ListNestedObjectValueOf[lifecycleConfigurationModel]     `tfsdk:"lifecycle_configuration"`
 	NetworkConfiguration       fwtypes.ListNestedObjectValueOf[networkConfigurationModel]       `tfsdk:"network_configuration"`
 	ProtocolConfiguration      fwtypes.ListNestedObjectValueOf[protocolConfigurationModel]      `tfsdk:"protocol_configuration"`
@@ -756,6 +831,108 @@ func (m agentRuntimeArtifactModel) Expand(ctx context.Context) (any, diag.Diagno
 			return nil, diags
 		}
 		var r awstypes.AgentRuntimeArtifactMemberContainerConfiguration
+		smerr.AddEnrich(ctx, &diags, fwflex.Expand(ctx, data, &r.Value))
+		if diags.HasError() {
+			return nil, diags
+		}
+		return &r, diags
+	}
+	return nil, diags
+}
+
+type filesystemConfigurationModel struct {
+	SessionStorage     fwtypes.ListNestedObjectValueOf[sessionStorageConfigurationModel]     `tfsdk:"session_storage"`
+	S3FilesAccessPoint fwtypes.ListNestedObjectValueOf[s3FilesAccessPointConfigurationModel] `tfsdk:"s3_files_access_point"`
+	EfsAccessPoint     fwtypes.ListNestedObjectValueOf[efsAccessPointConfigurationModel]     `tfsdk:"efs_access_point"`
+}
+
+type sessionStorageConfigurationModel struct {
+	MountPath types.String `tfsdk:"mount_path"`
+}
+
+type s3FilesAccessPointConfigurationModel struct {
+	AccessPointARN fwtypes.ARN  `tfsdk:"access_point_arn"`
+	MountPath      types.String `tfsdk:"mount_path"`
+}
+
+type efsAccessPointConfigurationModel struct {
+	AccessPointARN fwtypes.ARN  `tfsdk:"access_point_arn"`
+	MountPath      types.String `tfsdk:"mount_path"`
+}
+
+var (
+	_ fwflex.Expander  = filesystemConfigurationModel{}
+	_ fwflex.Flattener = &filesystemConfigurationModel{}
+)
+
+func (m *filesystemConfigurationModel) Flatten(ctx context.Context, v any) diag.Diagnostics {
+	var diags diag.Diagnostics
+	switch t := v.(type) {
+	case awstypes.FilesystemConfigurationMemberSessionStorage:
+		var data sessionStorageConfigurationModel
+		smerr.AddEnrich(ctx, &diags, fwflex.Flatten(ctx, t.Value, &data))
+		if diags.HasError() {
+			return diags
+		}
+		m.SessionStorage = fwtypes.NewListNestedObjectValueOfPtrMust(ctx, &data)
+	case awstypes.FilesystemConfigurationMemberS3FilesAccessPoint:
+		var data s3FilesAccessPointConfigurationModel
+		smerr.AddEnrich(ctx, &diags, fwflex.Flatten(ctx, t.Value, &data))
+		if diags.HasError() {
+			return diags
+		}
+		m.S3FilesAccessPoint = fwtypes.NewListNestedObjectValueOfPtrMust(ctx, &data)
+	case awstypes.FilesystemConfigurationMemberEfsAccessPoint:
+		var data efsAccessPointConfigurationModel
+		smerr.AddEnrich(ctx, &diags, fwflex.Flatten(ctx, t.Value, &data))
+		if diags.HasError() {
+			return diags
+		}
+		m.EfsAccessPoint = fwtypes.NewListNestedObjectValueOfPtrMust(ctx, &data)
+
+	default:
+		diags.AddError(
+			"Unsupported Type",
+			fmt.Sprintf("filesystem configuration flatten: %T", v),
+		)
+	}
+	return diags
+}
+
+func (m filesystemConfigurationModel) Expand(ctx context.Context) (any, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	switch {
+	case !m.SessionStorage.IsNull():
+		data, d := m.SessionStorage.ToPtr(ctx)
+		smerr.AddEnrich(ctx, &diags, d)
+		if diags.HasError() {
+			return nil, diags
+		}
+		var r awstypes.FilesystemConfigurationMemberSessionStorage
+		smerr.AddEnrich(ctx, &diags, fwflex.Expand(ctx, data, &r.Value))
+		if diags.HasError() {
+			return nil, diags
+		}
+		return &r, diags
+	case !m.S3FilesAccessPoint.IsNull():
+		data, d := m.S3FilesAccessPoint.ToPtr(ctx)
+		smerr.AddEnrich(ctx, &diags, d)
+		if diags.HasError() {
+			return nil, diags
+		}
+		var r awstypes.FilesystemConfigurationMemberS3FilesAccessPoint
+		smerr.AddEnrich(ctx, &diags, fwflex.Expand(ctx, data, &r.Value))
+		if diags.HasError() {
+			return nil, diags
+		}
+		return &r, diags
+	case !m.EfsAccessPoint.IsNull():
+		data, d := m.EfsAccessPoint.ToPtr(ctx)
+		smerr.AddEnrich(ctx, &diags, d)
+		if diags.HasError() {
+			return nil, diags
+		}
+		var r awstypes.FilesystemConfigurationMemberEfsAccessPoint
 		smerr.AddEnrich(ctx, &diags, fwflex.Expand(ctx, data, &r.Value))
 		if diags.HasError() {
 			return nil, diags
