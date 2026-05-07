@@ -1,5 +1,13 @@
 ## 6.45.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `aws_securityhub_aggregator_v2` ([#47651](https://github.com/hashicorp/terraform-provider-aws/issues/47651))
+
+BUG FIXES:
+
+* resource/aws_grafana_workspace: Fix `network_access_control` regression causing `ValidationException` when only one of `vpce_ids` or `prefix_list_ids` is set ([#47646](https://github.com/hashicorp/terraform-provider-aws/issues/47646))
+
 ## 6.44.0 (May 6, 2025)
 
 NOTES:
