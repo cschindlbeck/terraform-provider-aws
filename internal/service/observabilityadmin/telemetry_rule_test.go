@@ -1,0 +1,159 @@
+// Copyright IBM Corp. 2014, 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package observabilityadmin_test
+
+import (
+	"context"
+	"fmt"
+	"testing"
+
+	"github.com/aws/aws-sdk-go-v2/service/observabilityadmin"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/hashicorp/terraform-provider-aws/internal/acctest"
+	tfobservabilityadmin "github.com/hashicorp/terraform-provider-aws/internal/service/observabilityadmin"
+	"github.com/hashicorp/terraform-provider-aws/names"
+)
+
+func testAccTelemetryRulePreCheck(ctx context.Context, t *testing.T) {
+	conn := acctest.ProviderMeta(ctx, t).ObservabilityAdminClient(ctx)
+
+	// Ensure telemetry evaluation is running (prerequisite for rules).
+	var evalInput observabilityadmin.GetTelemetryEvaluationStatusInput
+	evalOutput, err := conn.GetTelemetryEvaluationStatus(ctx, &evalInput)
+
+	if acctest.PreCheckSkipError(err) {
+		t.Skipf("skipping acceptance testing: %s", err)
+	}
+
+	if err != nil {
+		t.Fatalf("unexpected PreCheck error: %s", err)
+	}
+
+	if evalOutput.Status != "RUNNING" {
+		var startInput observabilityadmin.StartTelemetryEvaluationInput
+		_, err := conn.StartTelemetryEvaluation(ctx, &startInput)
+		if err != nil {
+			t.Fatalf("failed to start telemetry evaluation: %s", err)
+		}
+	}
+}
+
+func TestAccObservabilityAdminTelemetryRule_basic(t *testing.T) {
+	ctx := acctest.Context(t)
+	resourceName := "aws_observabilityadmin_telemetry_rule.test"
+	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
+
+	acctest.ParallelTest(ctx, t, resource.TestCase{
+		PreCheck: func() {
+			acctest.PreCheck(ctx, t)
+			testAccTelemetryRulePreCheck(ctx, t)
+		},
+		ErrorCheck:               acctest.ErrorCheck(t, names.ObservabilityAdminServiceID),
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckTelemetryRuleDestroy(ctx, t),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTelemetryRuleConfig_basic(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckTelemetryRuleExists(ctx, t, resourceName),
+					resource.TestCheckResourceAttr(resourceName, "rule_name", rName),
+					resource.TestCheckResourceAttrSet(resourceName, "rule_arn"),
+				),
+			},
+			{
+				ResourceName:                         resourceName,
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+				ImportStateVerifyIdentifierAttribute: "rule_name",
+			},
+		},
+	})
+}
+
+func TestAccObservabilityAdminTelemetryRule_disappears(t *testing.T) {
+	ctx := acctest.Context(t)
+	resourceName := "aws_observabilityadmin_telemetry_rule.test"
+	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
+
+	acctest.ParallelTest(ctx, t, resource.TestCase{
+		PreCheck: func() {
+			acctest.PreCheck(ctx, t)
+			testAccTelemetryRulePreCheck(ctx, t)
+		},
+		ErrorCheck:               acctest.ErrorCheck(t, names.ObservabilityAdminServiceID),
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckTelemetryRuleDestroy(ctx, t),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTelemetryRuleConfig_disappears(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckTelemetryRuleExists(ctx, t, resourceName),
+					acctest.CheckFrameworkResourceDisappears(ctx, t, tfobservabilityadmin.ResourceTelemetryRule, resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func testAccCheckTelemetryRuleDestroy(ctx context.Context, t *testing.T) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		conn := acctest.ProviderMeta(ctx, t).ObservabilityAdminClient(ctx)
+
+		for _, rs := range s.RootModule().Resources {
+			if rs.Type != "aws_observabilityadmin_telemetry_rule" {
+				continue
+			}
+
+			_, err := tfobservabilityadmin.FindTelemetryRule(ctx, conn, rs.Primary.ID)
+			if err == nil {
+				return fmt.Errorf("ObservabilityAdmin Telemetry Rule %s still exists", rs.Primary.ID)
+			}
+		}
+
+		return nil
+	}
+}
+
+func testAccCheckTelemetryRuleExists(ctx context.Context, t *testing.T, n string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[n]
+		if !ok {
+			return fmt.Errorf("Not found: %s", n)
+		}
+
+		conn := acctest.ProviderMeta(ctx, t).ObservabilityAdminClient(ctx)
+
+		_, err := tfobservabilityadmin.FindTelemetryRule(ctx, conn, rs.Primary.ID)
+
+		return err
+	}
+}
+
+func testAccTelemetryRuleConfig_basic(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_observabilityadmin_telemetry_rule" "test" {
+  rule_name = %[1]q
+
+  rule {
+    resource_type  = "AWS::EC2::Instance"
+    telemetry_type = "Metrics"
+  }
+}
+`, rName)
+}
+
+func testAccTelemetryRuleConfig_disappears(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_observabilityadmin_telemetry_rule" "test" {
+  rule_name = %[1]q
+
+  rule {
+    resource_type  = "AWS::EC2::VPC"
+    telemetry_type = "Logs"
+  }
+}
+`, rName)
+}
