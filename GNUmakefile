@@ -527,8 +527,10 @@ provider-markdown-lint: ## [CI] Provider Check / markdown-lint
 		-v "$(PWD):/markdown" \
 		avtodev/markdown-lint:v1.5.0 \
 		--config markdown/.markdownlint.yml \
+		--ignore markdown/.agents \
 		--ignore markdown/docs \
 		--ignore markdown/website/docs \
+		--ignore markdown/AGENTS.md \
 		--ignore markdown/CHANGELOG.md \
 		--ignore markdown/internal/service/cloudformation/test-fixtures/examplecompany-exampleservice-exampleresource/docs \
 		/markdown/**/*.md
