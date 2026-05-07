@@ -46,6 +46,16 @@ func (p *servicePackage) FrameworkResources(ctx context.Context) []*inttypes.Ser
 			},
 		},
 		{
+			Factory:  newTelemetryEvaluationResource,
+			TypeName: "aws_observabilityadmin_telemetry_evaluation",
+			Name:     "Telemetry Evaluation",
+			Region:   inttypes.ResourceRegionDefault(),
+			Identity: inttypes.RegionalSingletonIdentity(inttypes.WithIdentityDuplicateAttrs(names.AttrID)),
+			Import: inttypes.FrameworkImport{
+				WrappedImport: true,
+			},
+		},
+		{
 			Factory:  newTelemetryPipelineResource,
 			TypeName: "aws_observabilityadmin_telemetry_pipeline",
 			Name:     "Telemetry Pipeline",

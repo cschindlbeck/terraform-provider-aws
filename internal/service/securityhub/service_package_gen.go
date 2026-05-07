@@ -25,6 +25,18 @@ type servicePackage struct{}
 func (p *servicePackage) FrameworkDataSources(ctx context.Context) []*inttypes.ServicePackageFrameworkDataSource {
 	return []*inttypes.ServicePackageFrameworkDataSource{
 		{
+			Factory:  newEnabledStandardsDataSource,
+			TypeName: "aws_securityhub_enabled_standards",
+			Name:     "Enabled Standards",
+			Region:   inttypes.ResourceRegionDefault(),
+		},
+		{
+			Factory:  newSecurityControlsDataSource,
+			TypeName: "aws_securityhub_security_controls",
+			Name:     "Security Controls",
+			Region:   inttypes.ResourceRegionDefault(),
+		},
+		{
 			Factory:  newStandardsControlAssociationsDataSource,
 			TypeName: "aws_securityhub_standards_control_associations",
 			Name:     "Standards Control Associations",
@@ -39,6 +51,19 @@ func (p *servicePackage) FrameworkResources(ctx context.Context) []*inttypes.Ser
 			Factory:  newAccountV2Resource,
 			TypeName: "aws_securityhub_account_v2",
 			Name:     "Account V2",
+			Tags: unique.Make(inttypes.ServicePackageResourceTags{
+				IdentifierAttribute: names.AttrARN,
+			}),
+			Region:   inttypes.ResourceRegionDefault(),
+			Identity: inttypes.RegionalARNIdentity(),
+			Import: inttypes.FrameworkImport{
+				WrappedImport: true,
+			},
+		},
+		{
+			Factory:  newAggregatorV2Resource,
+			TypeName: "aws_securityhub_aggregator_v2",
+			Name:     "Aggregator V2",
 			Tags: unique.Make(inttypes.ServicePackageResourceTags{
 				IdentifierAttribute: names.AttrARN,
 			}),
@@ -241,6 +266,13 @@ func (p *servicePackage) SDKListResources(ctx context.Context) iter.Seq[*inttype
 			Name:     "Insight",
 			Region:   inttypes.ResourceRegionDefault(),
 			Identity: inttypes.RegionalARNIdentity(inttypes.WithIdentityDuplicateAttrs(names.AttrID)),
+		},
+		{
+			Factory:  newStandardsControlResourceAsListResource,
+			TypeName: "aws_securityhub_standards_control",
+			Name:     "Standards Control",
+			Region:   inttypes.ResourceRegionDefault(),
+			Identity: inttypes.RegionalARNIdentityNamed("standards_control_arn", inttypes.WithIdentityDuplicateAttrs(names.AttrID)),
 		},
 	})
 }
