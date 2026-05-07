@@ -3460,7 +3460,7 @@ func TestAccElastiCacheReplicationGroup_Engine_Redis_LogDeliveryConfigurations_C
 	})
 }
 
-func TestAccElastiCacheReplicationGroup_EngineUpgradeAfterDisassociateGlobalReplicationGroup(t *testing.T) {
+func TestAccElastiCacheReplicationGroup_GlobalReplicationGroupID_engineUpgradeAfterDisassociate(t *testing.T) {
 	ctx := acctest.Context(t)
 	if testing.Short() {
 		t.Skip("skipping long-running test in short mode")
@@ -3477,7 +3477,7 @@ func TestAccElastiCacheReplicationGroup_EngineUpgradeAfterDisassociateGlobalRepl
 		CheckDestroy:             testAccCheckReplicationGroupDestroy(ctx, t),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccReplicationGroupConfig_GlobalReplicationGroup(rName, tfelasticache.EngineValkey, "7.2", "default.valkey7"),
+				Config: testAccReplicationGroupConfig_globalIDAssociated(rName, tfelasticache.EngineValkey, "7.2", "default.valkey7"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckReplicationGroupExists(ctx, t, primaryGroupResourceName, &rg),
 					testAccCheckReplicationGroupIsInGlobalGroup(ctx, t, primaryGroupResourceName),
@@ -3488,7 +3488,7 @@ func TestAccElastiCacheReplicationGroup_EngineUpgradeAfterDisassociateGlobalRepl
 				),
 			},
 			{
-				Config: testAccReplicationGroupConfig_GlobalReplicationGroupExcluded(rName, tfelasticache.EngineValkey, "7.2", "default.valkey7"),
+				Config: testAccReplicationGroupConfig_globalIDExcluded(rName, tfelasticache.EngineValkey, "7.2", "default.valkey7"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckReplicationGroupExists(ctx, t, primaryGroupResourceName, &rg),
 					testAccCheckReplicationGroupIsNotInGlobalGroup(ctx, t, primaryGroupResourceName),
@@ -3512,7 +3512,7 @@ func TestAccElastiCacheReplicationGroup_EngineUpgradeAfterDisassociateGlobalRepl
 				ExpectNonEmptyPlan: true,
 			},
 			{
-				Config: testAccReplicationGroupConfig_GlobalReplicationGroupExcluded(rName, tfelasticache.EngineValkey, "8.0", "default.valkey8"),
+				Config: testAccReplicationGroupConfig_globalIDExcluded(rName, tfelasticache.EngineValkey, "8.0", "default.valkey8"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckReplicationGroupExists(ctx, t, primaryGroupResourceName, &rg),
 					testAccCheckReplicationGroupIsNotInGlobalGroup(ctx, t, primaryGroupResourceName),
@@ -6022,7 +6022,7 @@ resource "aws_elasticache_replication_group" "test" {
 	)
 }
 
-func testAccReplicationGroupConfig_GlobalReplicationGroup(rName, engine, engineVersion, parameterGroupName string) string {
+func testAccReplicationGroupConfig_globalIDAssociated(rName, engine, engineVersion, parameterGroupName string) string {
 	return acctest.ConfigCompose(
 		testAccVPCBaseWithProvider(rName, "primary", acctest.ProviderName, 1),
 		fmt.Sprintf(`
@@ -6047,7 +6047,7 @@ resource "aws_elasticache_replication_group" "primary" {
 	)
 }
 
-func testAccReplicationGroupConfig_GlobalReplicationGroupExcluded(rName, engine, engineVersion, parameterGroupName string) string {
+func testAccReplicationGroupConfig_globalIDExcluded(rName, engine, engineVersion, parameterGroupName string) string {
 	return acctest.ConfigCompose(
 		testAccVPCBaseWithProvider(rName, "primary", acctest.ProviderName, 1),
 		fmt.Sprintf(`
