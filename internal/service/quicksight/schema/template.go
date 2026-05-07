@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package schema
@@ -101,7 +101,7 @@ func TemplateDefinitionSchema() *schema.Schema {
 									},
 								},
 							},
-							"title":   stringLenBetweenSchema(attrOptional, 1, 1024),
+							attrTitle: stringLenBetweenSchema(attrOptional, 1, 1024),
 							"visuals": visualsSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_Visual.html
 						},
 					},
@@ -1674,7 +1674,7 @@ func flattenSheetDefinitions(apiObjects []awstypes.SheetDefinition) []any {
 			tfMap["text_boxes"] = flattenTextBoxes(apiObject.TextBoxes)
 		}
 		if apiObject.Title != nil {
-			tfMap["title"] = aws.ToString(apiObject.Title)
+			tfMap[attrTitle] = aws.ToString(apiObject.Title)
 		}
 		if apiObject.Visuals != nil {
 			tfMap["visuals"] = flattenVisuals(apiObject.Visuals)

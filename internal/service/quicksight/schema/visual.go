@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package schema
@@ -65,9 +65,9 @@ var legendOptionsSchema = sync.OnceValue(func() *schema.Schema {
 					Type:     schema.TypeString,
 					Optional: true,
 				},
-				"position":   stringEnumSchema[awstypes.LegendPosition](attrOptional),
-				"title":      labelOptionsSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_LabelOptions.html
-				"visibility": stringEnumSchema[awstypes.Visibility](attrOptional),
+				"position":     stringEnumSchema[awstypes.LegendPosition](attrOptional),
+				attrTitle:      labelOptionsSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_LabelOptions.html
+				attrVisibility: stringEnumSchema[awstypes.Visibility](attrOptional),
 				"width": {
 					Type:     schema.TypeString,
 					Optional: true,
@@ -113,7 +113,7 @@ var tooltipOptionsSchema = sync.OnceValue(func() *schema.Schema {
 														Type:     schema.TypeString,
 														Optional: true,
 													},
-													"visibility": stringEnumSchema[awstypes.Visibility](attrOptional),
+													attrVisibility: stringEnumSchema[awstypes.Visibility](attrOptional),
 												},
 											},
 										},
@@ -129,7 +129,7 @@ var tooltipOptionsSchema = sync.OnceValue(func() *schema.Schema {
 														Type:     schema.TypeString,
 														Optional: true,
 													},
-													"visibility": stringEnumSchema[awstypes.Visibility](attrOptional),
+													attrVisibility: stringEnumSchema[awstypes.Visibility](attrOptional),
 												},
 											},
 										},
@@ -271,8 +271,8 @@ var visualSubtitleLabelOptionsSchema = sync.OnceValue(func() *schema.Schema {
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"format_text": longFormatTextSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_LongFormatText.html
-				"visibility":  stringEnumSchema[awstypes.Visibility](attrOptionalComputed),
+				"format_text":  longFormatTextSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_LongFormatText.html
+				attrVisibility: stringEnumSchema[awstypes.Visibility](attrOptionalComputed),
 			},
 		},
 	}
@@ -317,8 +317,8 @@ var visualTitleLabelOptionsSchema = sync.OnceValue(func() *schema.Schema {
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"format_text": shortFormatTextSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ShortFormatText.html
-				"visibility":  stringEnumSchema[awstypes.Visibility](attrOptionalComputed),
+				"format_text":  shortFormatTextSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ShortFormatText.html
+				attrVisibility: stringEnumSchema[awstypes.Visibility](attrOptionalComputed),
 			},
 		},
 	}
@@ -417,9 +417,9 @@ var dataLabelOptionsSchema = sync.OnceValue(func() *schema.Schema {
 								Optional: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
-										"field_id":    stringLenBetweenSchema(attrOptional, 1, 512),
-										"field_value": stringLenBetweenSchema(attrOptional, 1, 2048),
-										"visibility":  stringEnumSchema[awstypes.Visibility](attrOptional),
+										"field_id":     stringLenBetweenSchema(attrOptional, 1, 512),
+										"field_value":  stringLenBetweenSchema(attrOptional, 1, 2048),
+										attrVisibility: stringEnumSchema[awstypes.Visibility](attrOptional),
 									},
 								},
 							},
@@ -430,8 +430,8 @@ var dataLabelOptionsSchema = sync.OnceValue(func() *schema.Schema {
 								Optional: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
-										"field_id":   stringLenBetweenSchema(attrOptional, 1, 512),
-										"visibility": stringEnumSchema[awstypes.Visibility](attrOptional),
+										"field_id":     stringLenBetweenSchema(attrOptional, 1, 512),
+										attrVisibility: stringEnumSchema[awstypes.Visibility](attrOptional),
 									},
 								},
 							},
@@ -442,7 +442,7 @@ var dataLabelOptionsSchema = sync.OnceValue(func() *schema.Schema {
 								Optional: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
-										"visibility": stringEnumSchema[awstypes.Visibility](attrOptional),
+										attrVisibility: stringEnumSchema[awstypes.Visibility](attrOptional),
 									},
 								},
 							},
@@ -453,7 +453,7 @@ var dataLabelOptionsSchema = sync.OnceValue(func() *schema.Schema {
 								Optional: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
-										"visibility": stringEnumSchema[awstypes.Visibility](attrOptional),
+										attrVisibility: stringEnumSchema[awstypes.Visibility](attrOptional),
 									},
 								},
 							},
@@ -464,7 +464,7 @@ var dataLabelOptionsSchema = sync.OnceValue(func() *schema.Schema {
 								Optional: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
-										"visibility": stringEnumSchema[awstypes.Visibility](attrOptional),
+										attrVisibility: stringEnumSchema[awstypes.Visibility](attrOptional),
 									},
 								},
 							},
@@ -477,7 +477,7 @@ var dataLabelOptionsSchema = sync.OnceValue(func() *schema.Schema {
 				"measure_label_visibility": stringEnumSchema[awstypes.Visibility](attrOptional),
 				"overlap":                  stringEnumSchema[awstypes.DataLabelOverlap](attrOptional),
 				"position":                 stringEnumSchema[awstypes.DataLabelPosition](attrOptional),
-				"visibility":               stringEnumSchema[awstypes.Visibility](attrOptional),
+				attrVisibility:             stringEnumSchema[awstypes.Visibility](attrOptional),
 			},
 		},
 	}
@@ -597,7 +597,7 @@ func expandDataLabelOptions(tfList []any) *awstypes.DataLabelOptions {
 	if v, ok := tfMap["position"].(string); ok && v != "" {
 		apiObject.Position = awstypes.DataLabelPosition(v)
 	}
-	if v, ok := tfMap["visibility"].(string); ok && v != "" {
+	if v, ok := tfMap[attrVisibility].(string); ok && v != "" {
 		apiObject.Visibility = awstypes.Visibility(v)
 	}
 	if v, ok := tfMap["data_label_types"].([]any); ok && len(v) > 0 {
@@ -678,7 +678,7 @@ func expandDataPathLabelType(tfList []any) *awstypes.DataPathLabelType {
 	if v, ok := tfMap["field_value"].(string); ok && v != "" {
 		apiObject.FieldValue = aws.String(v)
 	}
-	if v, ok := tfMap["visibility"].(string); ok && v != "" {
+	if v, ok := tfMap[attrVisibility].(string); ok && v != "" {
 		apiObject.Visibility = awstypes.Visibility(v)
 	}
 
@@ -700,7 +700,7 @@ func expandFieldLabelType(tfList []any) *awstypes.FieldLabelType {
 	if v, ok := tfMap["field_id"].(string); ok && v != "" {
 		apiObject.FieldId = aws.String(v)
 	}
-	if v, ok := tfMap["visibility"].(string); ok && v != "" {
+	if v, ok := tfMap[attrVisibility].(string); ok && v != "" {
 		apiObject.Visibility = awstypes.Visibility(v)
 	}
 
@@ -719,7 +719,7 @@ func expandMaximumLabelType(tfList []any) *awstypes.MaximumLabelType {
 
 	apiObject := &awstypes.MaximumLabelType{}
 
-	if v, ok := tfMap["visibility"].(string); ok && v != "" {
+	if v, ok := tfMap[attrVisibility].(string); ok && v != "" {
 		apiObject.Visibility = awstypes.Visibility(v)
 	}
 
@@ -738,7 +738,7 @@ func expandMinimumLabelType(tfList []any) *awstypes.MinimumLabelType {
 
 	apiObject := &awstypes.MinimumLabelType{}
 
-	if v, ok := tfMap["visibility"].(string); ok && v != "" {
+	if v, ok := tfMap[attrVisibility].(string); ok && v != "" {
 		apiObject.Visibility = awstypes.Visibility(v)
 	}
 
@@ -757,7 +757,7 @@ func expandRangeEndsLabelType(tfList []any) *awstypes.RangeEndsLabelType {
 
 	apiObject := &awstypes.RangeEndsLabelType{}
 
-	if v, ok := tfMap["visibility"].(string); ok && v != "" {
+	if v, ok := tfMap[attrVisibility].(string); ok && v != "" {
 		apiObject.Visibility = awstypes.Visibility(v)
 	}
 
@@ -782,13 +782,13 @@ func expandLegendOptions(tfList []any) *awstypes.LegendOptions {
 	if v, ok := tfMap["position"].(string); ok && v != "" {
 		apiObject.Position = awstypes.LegendPosition(v)
 	}
-	if v, ok := tfMap["visibility"].(string); ok && v != "" {
+	if v, ok := tfMap[attrVisibility].(string); ok && v != "" {
 		apiObject.Visibility = awstypes.Visibility(v)
 	}
 	if v, ok := tfMap["width"].(string); ok && v != "" {
 		apiObject.Width = aws.String(v)
 	}
-	if v, ok := tfMap["title"].([]any); ok && len(v) > 0 {
+	if v, ok := tfMap[attrTitle].([]any); ok && len(v) > 0 {
 		apiObject.Title = expandLabelOptions(v)
 	}
 
@@ -901,7 +901,7 @@ func expandColumnTooltipItem(tfList []any) *awstypes.ColumnTooltipItem {
 	if v, ok := tfMap["label"].(string); ok && v != "" {
 		apiObject.Label = aws.String(v)
 	}
-	if v, ok := tfMap["visibility"].(string); ok && v != "" {
+	if v, ok := tfMap[attrVisibility].(string); ok && v != "" {
 		apiObject.Visibility = awstypes.Visibility(v)
 	}
 	if v, ok := tfMap["column"].([]any); ok && len(v) > 0 {
@@ -932,7 +932,7 @@ func expandFieldTooltipItem(tfList []any) *awstypes.FieldTooltipItem {
 	if v, ok := tfMap["label"].(string); ok && v != "" {
 		apiObject.Label = aws.String(v)
 	}
-	if v, ok := tfMap["visibility"].(string); ok && v != "" {
+	if v, ok := tfMap[attrVisibility].(string); ok && v != "" {
 		apiObject.Visibility = awstypes.Visibility(v)
 	}
 
@@ -1186,7 +1186,7 @@ func expandVisualSubtitleLabelOptions(tfList []any) *awstypes.VisualSubtitleLabe
 
 	apiObject := &awstypes.VisualSubtitleLabelOptions{}
 
-	if v, ok := tfMap["visibility"].(string); ok && v != "" {
+	if v, ok := tfMap[attrVisibility].(string); ok && v != "" {
 		apiObject.Visibility = awstypes.Visibility(v)
 	}
 	if v, ok := tfMap["format_text"].([]any); ok && len(v) > 0 {
@@ -1230,7 +1230,7 @@ func expandVisualTitleLabelOptions(tfList []any) *awstypes.VisualTitleLabelOptio
 
 	apiObject := &awstypes.VisualTitleLabelOptions{}
 
-	if v, ok := tfMap["visibility"].(string); ok && v != "" {
+	if v, ok := tfMap[attrVisibility].(string); ok && v != "" {
 		apiObject.Visibility = awstypes.Visibility(v)
 	}
 	if v, ok := tfMap["format_text"].([]any); ok && len(v) > 0 {
@@ -1466,7 +1466,7 @@ func flattenDataLabelOptions(apiObject *awstypes.DataLabelOptions) []any {
 	tfMap["measure_label_visibility"] = apiObject.MeasureLabelVisibility
 	tfMap["overlap"] = apiObject.Overlap
 	tfMap["position"] = apiObject.Position
-	tfMap["visibility"] = apiObject.Visibility
+	tfMap[attrVisibility] = apiObject.Visibility
 
 	return []any{tfMap}
 }
@@ -1516,7 +1516,7 @@ func flattenDataPathLabelType(apiObject *awstypes.DataPathLabelType) []any {
 	if apiObject.FieldValue != nil {
 		tfMap["field_value"] = aws.ToString(apiObject.FieldValue)
 	}
-	tfMap["visibility"] = apiObject.Visibility
+	tfMap[attrVisibility] = apiObject.Visibility
 
 	return []any{tfMap}
 }
@@ -1531,7 +1531,7 @@ func flattenFieldLabelType(apiObject *awstypes.FieldLabelType) []any {
 	if apiObject.FieldId != nil {
 		tfMap["field_id"] = aws.ToString(apiObject.FieldId)
 	}
-	tfMap["visibility"] = apiObject.Visibility
+	tfMap[attrVisibility] = apiObject.Visibility
 
 	return []any{tfMap}
 }
@@ -1543,7 +1543,7 @@ func flattenMaximumLabelType(apiObject *awstypes.MaximumLabelType) []any {
 
 	tfMap := map[string]any{}
 
-	tfMap["visibility"] = apiObject.Visibility
+	tfMap[attrVisibility] = apiObject.Visibility
 
 	return []any{tfMap}
 }
@@ -1555,7 +1555,7 @@ func flattenMinimumLabelType(apiObject *awstypes.MinimumLabelType) []any {
 
 	tfMap := map[string]any{}
 
-	tfMap["visibility"] = apiObject.Visibility
+	tfMap[attrVisibility] = apiObject.Visibility
 
 	return []any{tfMap}
 }
@@ -1567,7 +1567,7 @@ func flattenRangeEndsLabelType(apiObject *awstypes.RangeEndsLabelType) []any {
 
 	tfMap := map[string]any{}
 
-	tfMap["visibility"] = apiObject.Visibility
+	tfMap[attrVisibility] = apiObject.Visibility
 
 	return []any{tfMap}
 }
@@ -1584,9 +1584,9 @@ func flattenLegendOptions(apiObject *awstypes.LegendOptions) []any {
 	}
 	tfMap["position"] = apiObject.Position
 	if apiObject.Title != nil {
-		tfMap["title"] = flattenLabelOptions(apiObject.Title)
+		tfMap[attrTitle] = flattenLabelOptions(apiObject.Title)
 	}
-	tfMap["visibility"] = apiObject.Visibility
+	tfMap[attrVisibility] = apiObject.Visibility
 	if apiObject.Width != nil {
 		tfMap["width"] = aws.ToString(apiObject.Width)
 	}
@@ -1665,7 +1665,7 @@ func flattenColumnTooltipItem(apiObject *awstypes.ColumnTooltipItem) []any {
 	if apiObject.Label != nil {
 		tfMap["label"] = aws.ToString(apiObject.Label)
 	}
-	tfMap["visibility"] = apiObject.Visibility
+	tfMap[attrVisibility] = apiObject.Visibility
 
 	return []any{tfMap}
 }
@@ -1682,7 +1682,7 @@ func flattenFieldTooltipItem(apiObject *awstypes.FieldTooltipItem) []any {
 	if apiObject.Label != nil {
 		tfMap["label"] = aws.ToString(apiObject.Label)
 	}
-	tfMap["visibility"] = apiObject.Visibility
+	tfMap[attrVisibility] = apiObject.Visibility
 
 	return []any{tfMap}
 }
@@ -1939,7 +1939,7 @@ func flattenVisualSubtitleLabelOptions(apiObject *awstypes.VisualSubtitleLabelOp
 	if apiObject.FormatText != nil {
 		tfMap["format_text"] = flattenLongFormatText(apiObject.FormatText)
 	}
-	tfMap["visibility"] = apiObject.Visibility
+	tfMap[attrVisibility] = apiObject.Visibility
 
 	return []any{tfMap}
 }
@@ -1971,7 +1971,7 @@ func flattenVisualTitleLabelOptions(apiObject *awstypes.VisualTitleLabelOptions)
 	if apiObject.FormatText != nil {
 		tfMap["format_text"] = flattenShortFormatText(apiObject.FormatText)
 	}
-	tfMap["visibility"] = apiObject.Visibility
+	tfMap[attrVisibility] = apiObject.Visibility
 
 	return []any{tfMap}
 }

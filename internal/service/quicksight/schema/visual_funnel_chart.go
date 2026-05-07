@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package schema
@@ -19,7 +19,7 @@ func funnelChartVisualSchema() *schema.Schema {
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"visual_id":       idSchema(),
+				attrVisualID:      idSchema(),
 				names.AttrActions: visualCustomActionsSchema(customActionsMaxItems), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualCustomAction.html
 				"chart_configuration": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_FunnelChartConfiguration.html
 					Type:     schema.TypeList,
@@ -42,7 +42,7 @@ func funnelChartVisualSchema() *schema.Schema {
 										"measure_data_label_style":  stringEnumSchema[awstypes.FunnelChartMeasureDataLabelStyle](attrOptional),
 										"measure_label_visibility":  stringEnumSchema[awstypes.Visibility](attrOptional),
 										"position":                  stringEnumSchema[awstypes.DataLabelPosition](attrOptional),
-										"visibility":                stringEnumSchema[awstypes.Visibility](attrOptional),
+										attrVisibility:              stringEnumSchema[awstypes.Visibility](attrOptional),
 									},
 								},
 							},
@@ -89,7 +89,7 @@ func funnelChartVisualSchema() *schema.Schema {
 				},
 				"column_hierarchies": columnHierarchiesSchema(),          // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnHierarchy.html
 				"subtitle":           visualSubtitleLabelOptionsSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualSubtitleLabelOptions.html
-				"title":              visualTitleLabelOptionsSchema(),    // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualTitleLabelOptions.html
+				attrTitle:            visualTitleLabelOptionsSchema(),    // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualTitleLabelOptions.html
 			},
 		},
 	}
@@ -107,7 +107,7 @@ func expandFunnelChartVisual(tfList []any) *awstypes.FunnelChartVisual {
 
 	apiObject := &awstypes.FunnelChartVisual{}
 
-	if v, ok := tfMap["visual_id"].(string); ok && v != "" {
+	if v, ok := tfMap[attrVisualID].(string); ok && v != "" {
 		apiObject.VisualId = aws.String(v)
 	}
 	if v, ok := tfMap[names.AttrActions].([]any); ok && len(v) > 0 {
@@ -122,7 +122,7 @@ func expandFunnelChartVisual(tfList []any) *awstypes.FunnelChartVisual {
 	if v, ok := tfMap["subtitle"].([]any); ok && len(v) > 0 {
 		apiObject.Subtitle = expandVisualSubtitleLabelOptions(v)
 	}
-	if v, ok := tfMap["title"].([]any); ok && len(v) > 0 {
+	if v, ok := tfMap[attrTitle].([]any); ok && len(v) > 0 {
 		apiObject.Title = expandVisualTitleLabelOptions(v)
 	}
 
@@ -256,7 +256,7 @@ func expandFunnelChartDataLabelOptions(tfList []any) *awstypes.FunnelChartDataLa
 	if v, ok := tfMap["position"].(string); ok && v != "" {
 		apiObject.Position = awstypes.DataLabelPosition(v)
 	}
-	if v, ok := tfMap["visibility"].(string); ok && v != "" {
+	if v, ok := tfMap[attrVisibility].(string); ok && v != "" {
 		apiObject.Visibility = awstypes.Visibility(v)
 	}
 	if v, ok := tfMap["label_font_configuration"].([]any); ok && len(v) > 0 {
@@ -272,7 +272,7 @@ func flattenFunnelChartVisual(apiObject *awstypes.FunnelChartVisual) []any {
 	}
 
 	tfMap := map[string]any{
-		"visual_id": aws.ToString(apiObject.VisualId),
+		attrVisualID: aws.ToString(apiObject.VisualId),
 	}
 
 	if apiObject.Actions != nil {
@@ -288,7 +288,7 @@ func flattenFunnelChartVisual(apiObject *awstypes.FunnelChartVisual) []any {
 		tfMap["subtitle"] = flattenVisualSubtitleLabelOptions(apiObject.Subtitle)
 	}
 	if apiObject.Title != nil {
-		tfMap["title"] = flattenVisualTitleLabelOptions(apiObject.Title)
+		tfMap[attrTitle] = flattenVisualTitleLabelOptions(apiObject.Title)
 	}
 
 	return []any{tfMap}
@@ -343,7 +343,7 @@ func flattenFunnelChartDataLabelOptions(apiObject *awstypes.FunnelChartDataLabel
 	tfMap["measure_data_label_style"] = apiObject.MeasureDataLabelStyle
 	tfMap["measure_label_visibility"] = apiObject.MeasureLabelVisibility
 	tfMap["position"] = apiObject.Position
-	tfMap["visibility"] = apiObject.Visibility
+	tfMap[attrVisibility] = apiObject.Visibility
 
 	return []any{tfMap}
 }

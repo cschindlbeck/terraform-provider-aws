@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package schema
@@ -143,7 +143,7 @@ var axisDisplayOptionsSchema = sync.OnceValue(func() *schema.Schema {
 					Optional: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"visibility": stringEnumSchema[awstypes.Visibility](attrOptional),
+							attrVisibility: stringEnumSchema[awstypes.Visibility](attrOptional),
 							"visible_range": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisibleRangeOptions.html
 								Type:     schema.TypeList,
 								MinItems: 1,
@@ -225,7 +225,7 @@ var chartAxisLabelOptionsSchema = sync.OnceValue(func() *schema.Schema {
 					},
 				},
 				"sort_icon_visibility": stringEnumSchema[awstypes.Visibility](attrOptional),
-				"visibility":           stringEnumSchema[awstypes.Visibility](attrOptional),
+				attrVisibility:         stringEnumSchema[awstypes.Visibility](attrOptional),
 			},
 		},
 	}
@@ -407,7 +407,7 @@ var smallMultiplesOptionsSchema = sync.OnceValue(func() *schema.Schema {
 								Optional: true,
 							},
 							"gutter_visibility": stringEnumSchema[awstypes.Visibility](attrOptional),
-							"title": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_PanelTitleOptions.html
+							attrTitle: { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_PanelTitleOptions.html
 								Type:     schema.TypeList,
 								Optional: true,
 								MinItems: 1,
@@ -416,7 +416,7 @@ var smallMultiplesOptionsSchema = sync.OnceValue(func() *schema.Schema {
 									Schema: map[string]*schema.Schema{
 										"font_configuration":        fontConfigurationSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_FontConfiguration.html
 										"horizontal_text_alignment": stringEnumSchema[awstypes.HorizontalTextAlignment](attrOptional),
-										"visibility":                stringEnumSchema[awstypes.Visibility](attrOptional),
+										attrVisibility:              stringEnumSchema[awstypes.Visibility](attrOptional),
 									},
 								},
 							},
@@ -659,7 +659,7 @@ func expandScrollBarOptions(tfList []any) *awstypes.ScrollBarOptions {
 
 	apiObject := &awstypes.ScrollBarOptions{}
 
-	if v, ok := tfMap["visibility"].(string); ok && v != "" {
+	if v, ok := tfMap[attrVisibility].(string); ok && v != "" {
 		apiObject.Visibility = awstypes.Visibility(v)
 	}
 	if v, ok := tfMap["visible_range"].([]any); ok && len(v) > 0 {
@@ -744,7 +744,7 @@ func expandChartAxisLabelOptions(tfList []any) *awstypes.ChartAxisLabelOptions {
 
 	apiObject := &awstypes.ChartAxisLabelOptions{}
 
-	if v, ok := tfMap["visibility"].(string); ok && v != "" {
+	if v, ok := tfMap[attrVisibility].(string); ok && v != "" {
 		apiObject.Visibility = awstypes.Visibility(v)
 	}
 	if v, ok := tfMap["sort_icon_visibility"].(string); ok && v != "" {
@@ -1138,7 +1138,7 @@ func expandPanelConfiguration(tfList []any) *awstypes.PanelConfiguration {
 	if v, ok := tfMap["gutter_visibility"].(string); ok && v != "" {
 		apiObject.GutterVisibility = awstypes.Visibility(v)
 	}
-	if v, ok := tfMap["title"].([]any); ok && len(v) > 0 {
+	if v, ok := tfMap[attrTitle].([]any); ok && len(v) > 0 {
 		apiObject.Title = expandPanelTitleOptions(v)
 	}
 
@@ -1160,7 +1160,7 @@ func expandPanelTitleOptions(tfList []any) *awstypes.PanelTitleOptions {
 	if v, ok := tfMap["horizontal_text_alignment"].(string); ok && v != "" {
 		apiObject.HorizontalTextAlignment = awstypes.HorizontalTextAlignment(v)
 	}
-	if v, ok := tfMap["visibility"].(string); ok && v != "" {
+	if v, ok := tfMap[attrVisibility].(string); ok && v != "" {
 		apiObject.Visibility = awstypes.Visibility(v)
 	}
 	if v, ok := tfMap["font_configuration"].([]any); ok && len(v) > 0 {
@@ -1363,7 +1363,7 @@ func flattenScrollBarOptions(apiObject *awstypes.ScrollBarOptions) []any {
 
 	tfMap := map[string]any{}
 
-	tfMap["visibility"] = apiObject.Visibility
+	tfMap[attrVisibility] = apiObject.Visibility
 	if apiObject.VisibleRange != nil {
 		tfMap["visible_range"] = flattenVisibleRangeOptions(apiObject.VisibleRange)
 	}
@@ -1430,7 +1430,7 @@ func flattenChartAxisLabelOptions(apiObject *awstypes.ChartAxisLabelOptions) []a
 		tfMap["axis_label_options"] = flattenAxisLabelOptions(apiObject.AxisLabelOptions)
 	}
 	tfMap["sort_icon_visibility"] = apiObject.SortIconVisibility
-	tfMap["visibility"] = apiObject.Visibility
+	tfMap[attrVisibility] = apiObject.Visibility
 
 	return []any{tfMap}
 }
@@ -1705,7 +1705,7 @@ func flattenPanelConfiguration(apiObject *awstypes.PanelConfiguration) []any {
 		tfMap["gutter_spacing"] = aws.ToString(apiObject.GutterSpacing)
 	}
 	if apiObject.Title != nil {
-		tfMap["title"] = flattenPanelTitleOptions(apiObject.Title)
+		tfMap[attrTitle] = flattenPanelTitleOptions(apiObject.Title)
 	}
 
 	return []any{tfMap}
@@ -1722,7 +1722,7 @@ func flattenPanelTitleOptions(apiObject *awstypes.PanelTitleOptions) []any {
 		tfMap["font_configuration"] = flattenFontConfiguration(apiObject.FontConfiguration)
 	}
 	tfMap["horizontal_text_alignment"] = apiObject.HorizontalTextAlignment
-	tfMap["visibility"] = apiObject.Visibility
+	tfMap[attrVisibility] = apiObject.Visibility
 
 	return []any{tfMap}
 }

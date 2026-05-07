@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package schema
@@ -30,7 +30,7 @@ var filterControlsSchema = sync.OnceValue(func() *schema.Schema {
 						Schema: map[string]*schema.Schema{
 							"filter_control_id": idSchema(),
 							"source_filter_id":  idSchema(),
-							"title":             stringLenBetweenSchema(attrRequired, 1, 2048),
+							attrTitle:           stringLenBetweenSchema(attrRequired, 1, 2048),
 							"display_options":   dateTimePickerControlDisplayOptionsSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_DateTimePickerControlDisplayOptions.html
 							names.AttrType:      stringEnumSchema[awstypes.SheetControlDateTimePickerType](attrOptional),
 						},
@@ -45,7 +45,7 @@ var filterControlsSchema = sync.OnceValue(func() *schema.Schema {
 						Schema: map[string]*schema.Schema{
 							"filter_control_id":               idSchema(),
 							"source_filter_id":                idSchema(),
-							"title":                           stringLenBetweenSchema(attrRequired, 1, 2048),
+							attrTitle:                         stringLenBetweenSchema(attrRequired, 1, 2048),
 							"cascading_control_configuration": cascadingControlConfigurationSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_CascadingControlConfiguration.html
 							"display_options":                 dropDownControlDisplayOptionsSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_DropDownControlDisplayOptions.html
 							"selectable_values":               filterSelectableValuesSchema(),        // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_FilterSelectableValues.html
@@ -62,7 +62,7 @@ var filterControlsSchema = sync.OnceValue(func() *schema.Schema {
 						Schema: map[string]*schema.Schema{
 							"filter_control_id":               idSchema(),
 							"source_filter_id":                idSchema(),
-							"title":                           stringLenBetweenSchema(attrRequired, 1, 2048),
+							attrTitle:                         stringLenBetweenSchema(attrRequired, 1, 2048),
 							"cascading_control_configuration": cascadingControlConfigurationSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_CascadingControlConfiguration.html
 							"display_options":                 listControlDisplayOptionsSchema(),     // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ListControlDisplayOptions.html
 							"selectable_values":               filterSelectableValuesSchema(),        // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_FilterSelectableValues.html
@@ -79,7 +79,7 @@ var filterControlsSchema = sync.OnceValue(func() *schema.Schema {
 						Schema: map[string]*schema.Schema{
 							"filter_control_id": idSchema(),
 							"source_filter_id":  idSchema(),
-							"title":             stringLenBetweenSchema(attrRequired, 1, 2048),
+							attrTitle:           stringLenBetweenSchema(attrRequired, 1, 2048),
 							"display_options": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_RelativeDateTimeControlDisplayOptions.html
 								Type:     schema.TypeList,
 								Optional: true,
@@ -104,7 +104,7 @@ var filterControlsSchema = sync.OnceValue(func() *schema.Schema {
 						Schema: map[string]*schema.Schema{
 							"filter_control_id": idSchema(),
 							"source_filter_id":  idSchema(),
-							"title":             stringLenBetweenSchema(attrRequired, 1, 2048),
+							attrTitle:           stringLenBetweenSchema(attrRequired, 1, 2048),
 							"maximum_value": {
 								Type:     schema.TypeFloat,
 								Required: true,
@@ -131,7 +131,7 @@ var filterControlsSchema = sync.OnceValue(func() *schema.Schema {
 						Schema: map[string]*schema.Schema{
 							"filter_control_id": idSchema(),
 							"source_filter_id":  idSchema(),
-							"title":             stringLenBetweenSchema(attrRequired, 1, 2048),
+							attrTitle:           stringLenBetweenSchema(attrRequired, 1, 2048),
 							"delimiter":         stringLenBetweenSchema(attrOptional, 1, 2048),
 							"display_options":   textAreaControlDisplayOptionsSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_TextAreaControlDisplayOptions.html
 						},
@@ -146,7 +146,7 @@ var filterControlsSchema = sync.OnceValue(func() *schema.Schema {
 						Schema: map[string]*schema.Schema{
 							"filter_control_id": idSchema(),
 							"source_filter_id":  idSchema(),
-							"title":             stringLenBetweenSchema(attrRequired, 1, 2048),
+							attrTitle:           stringLenBetweenSchema(attrRequired, 1, 2048),
 							"display_options":   textFieldControlDisplayOptionsSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_TextFieldControlDisplayOptions.html
 						},
 					},
@@ -230,7 +230,7 @@ var listControlDisplayOptionsSchema = sync.OnceValue(func() *schema.Schema {
 					MaxItems: 1,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"visibility": stringEnumSchema[awstypes.Visibility](attrOptional),
+							attrVisibility: stringEnumSchema[awstypes.Visibility](attrOptional),
 						},
 					},
 				},
@@ -277,7 +277,7 @@ var selectAllOptionsSchema = sync.OnceValue(func() *schema.Schema {
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"visibility": stringEnumSchema[awstypes.Visibility](attrOptional),
+				attrVisibility: stringEnumSchema[awstypes.Visibility](attrOptional),
 			},
 		},
 	}
@@ -306,7 +306,7 @@ var placeholderOptionsSchema = sync.OnceValue(func() *schema.Schema {
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"visibility": stringEnumSchema[awstypes.Visibility](attrOptional),
+				attrVisibility: stringEnumSchema[awstypes.Visibility](attrOptional),
 			},
 		},
 	}
@@ -362,7 +362,7 @@ func expandFilterDateTimePickerControl(tfList []any) *awstypes.FilterDateTimePic
 	if v, ok := tfMap["source_filter_id"].(string); ok && v != "" {
 		apiObject.SourceFilterId = aws.String(v)
 	}
-	if v, ok := tfMap["title"].(string); ok && v != "" {
+	if v, ok := tfMap[attrTitle].(string); ok && v != "" {
 		apiObject.Title = aws.String(v)
 	}
 	if v, ok := tfMap[names.AttrType].(string); ok && v != "" {
@@ -415,7 +415,7 @@ func expandFilterDropDownControl(tfList []any) *awstypes.FilterDropDownControl {
 	if v, ok := tfMap["source_filter_id"].(string); ok && v != "" {
 		apiObject.SourceFilterId = aws.String(v)
 	}
-	if v, ok := tfMap["title"].(string); ok && v != "" {
+	if v, ok := tfMap[attrTitle].(string); ok && v != "" {
 		apiObject.Title = aws.String(v)
 	}
 	if v, ok := tfMap[names.AttrType].(string); ok && v != "" {
@@ -528,7 +528,7 @@ func expandListControlSelectAllOptions(tfList []any) *awstypes.ListControlSelect
 
 	apiObject := &awstypes.ListControlSelectAllOptions{}
 
-	if v, ok := tfMap["visibility"].(string); ok && v != "" {
+	if v, ok := tfMap[attrVisibility].(string); ok && v != "" {
 		apiObject.Visibility = awstypes.Visibility(v)
 	}
 
@@ -572,7 +572,7 @@ func expandFilterListControl(tfList []any) *awstypes.FilterListControl {
 	if v, ok := tfMap["source_filter_id"].(string); ok && v != "" {
 		apiObject.SourceFilterId = aws.String(v)
 	}
-	if v, ok := tfMap["title"].(string); ok && v != "" {
+	if v, ok := tfMap[attrTitle].(string); ok && v != "" {
 		apiObject.Title = aws.String(v)
 	}
 	if v, ok := tfMap[names.AttrType].(string); ok && v != "" {
@@ -628,7 +628,7 @@ func expandListControlSearchOptions(tfList []any) *awstypes.ListControlSearchOpt
 
 	apiObject := &awstypes.ListControlSearchOptions{}
 
-	if v, ok := tfMap["visibility"].(string); ok && v != "" {
+	if v, ok := tfMap[attrVisibility].(string); ok && v != "" {
 		apiObject.Visibility = awstypes.Visibility(v)
 	}
 
@@ -653,7 +653,7 @@ func expandFilterRelativeDateTimeControl(tfList []any) *awstypes.FilterRelativeD
 	if v, ok := tfMap["source_filter_id"].(string); ok && v != "" {
 		apiObject.SourceFilterId = aws.String(v)
 	}
-	if v, ok := tfMap["title"].(string); ok && v != "" {
+	if v, ok := tfMap[attrTitle].(string); ok && v != "" {
 		apiObject.Title = aws.String(v)
 	}
 	if v, ok := tfMap["display_options"].([]any); ok && len(v) > 0 {
@@ -703,7 +703,7 @@ func expandFilterSliderControl(tfList []any) *awstypes.FilterSliderControl {
 	if v, ok := tfMap["source_filter_id"].(string); ok && v != "" {
 		apiObject.SourceFilterId = aws.String(v)
 	}
-	if v, ok := tfMap["title"].(string); ok && v != "" {
+	if v, ok := tfMap[attrTitle].(string); ok && v != "" {
 		apiObject.Title = aws.String(v)
 	}
 	if v, ok := tfMap[names.AttrType].(string); ok && v != "" {
@@ -762,7 +762,7 @@ func expandFilterTextAreaControl(tfList []any) *awstypes.FilterTextAreaControl {
 	if v, ok := tfMap["source_filter_id"].(string); ok && v != "" {
 		apiObject.SourceFilterId = aws.String(v)
 	}
-	if v, ok := tfMap["title"].(string); ok && v != "" {
+	if v, ok := tfMap[attrTitle].(string); ok && v != "" {
 		apiObject.Title = aws.String(v)
 	}
 	if v, ok := tfMap["delimiter"].(string); ok && v != "" {
@@ -809,7 +809,7 @@ func expandTextControlPlaceholderOptions(tfList []any) *awstypes.TextControlPlac
 
 	apiObject := &awstypes.TextControlPlaceholderOptions{}
 
-	if v, ok := tfMap["visibility"].(string); ok && v != "" {
+	if v, ok := tfMap[attrVisibility].(string); ok && v != "" {
 		apiObject.Visibility = awstypes.Visibility(v)
 	}
 
@@ -834,7 +834,7 @@ func expandFilterTextFieldControl(tfList []any) *awstypes.FilterTextFieldControl
 	if v, ok := tfMap["source_filter_id"].(string); ok && v != "" {
 		apiObject.SourceFilterId = aws.String(v)
 	}
-	if v, ok := tfMap["title"].(string); ok && v != "" {
+	if v, ok := tfMap[attrTitle].(string); ok && v != "" {
 		apiObject.Title = aws.String(v)
 	}
 	if v, ok := tfMap["display_options"].([]any); ok && len(v) > 0 {
@@ -913,7 +913,7 @@ func expandParameterDateTimePickerControl(tfList []any) *awstypes.ParameterDateT
 	if v, ok := tfMap["source_parameter_name"].(string); ok && v != "" {
 		apiObject.SourceParameterName = aws.String(v)
 	}
-	if v, ok := tfMap["title"].(string); ok && v != "" {
+	if v, ok := tfMap[attrTitle].(string); ok && v != "" {
 		apiObject.Title = aws.String(v)
 	}
 	if v, ok := tfMap["display_options"].([]any); ok && len(v) > 0 {
@@ -941,7 +941,7 @@ func expandParameterDropDownControl(tfList []any) *awstypes.ParameterDropDownCon
 	if v, ok := tfMap["source_parameter_name"].(string); ok && v != "" {
 		apiObject.SourceParameterName = aws.String(v)
 	}
-	if v, ok := tfMap["title"].(string); ok && v != "" {
+	if v, ok := tfMap[attrTitle].(string); ok && v != "" {
 		apiObject.Title = aws.String(v)
 	}
 	if v, ok := tfMap[names.AttrType].(string); ok && v != "" {
@@ -978,7 +978,7 @@ func expandParameterListControl(tfList []any) *awstypes.ParameterListControl {
 	if v, ok := tfMap["source_parameter_name"].(string); ok && v != "" {
 		apiObject.SourceParameterName = aws.String(v)
 	}
-	if v, ok := tfMap["title"].(string); ok && v != "" {
+	if v, ok := tfMap[attrTitle].(string); ok && v != "" {
 		apiObject.Title = aws.String(v)
 	}
 	if v, ok := tfMap[names.AttrType].(string); ok && v != "" {
@@ -1015,7 +1015,7 @@ func expandParameterSliderControl(tfList []any) *awstypes.ParameterSliderControl
 	if v, ok := tfMap["source_parameter_name"].(string); ok && v != "" {
 		apiObject.SourceParameterName = aws.String(v)
 	}
-	if v, ok := tfMap["title"].(string); ok && v != "" {
+	if v, ok := tfMap[attrTitle].(string); ok && v != "" {
 		apiObject.Title = aws.String(v)
 	}
 	if v, ok := tfMap["maximum_value"].(float64); ok {
@@ -1052,7 +1052,7 @@ func expandParameterTextAreaControl(tfList []any) *awstypes.ParameterTextAreaCon
 	if v, ok := tfMap["source_parameter_name"].(string); ok && v != "" {
 		apiObject.SourceParameterName = aws.String(v)
 	}
-	if v, ok := tfMap["title"].(string); ok && v != "" {
+	if v, ok := tfMap[attrTitle].(string); ok && v != "" {
 		apiObject.Title = aws.String(v)
 	}
 	if v, ok := tfMap["delimiter"].(string); ok && v != "" {
@@ -1083,7 +1083,7 @@ func expandParameterTextFieldControl(tfList []any) *awstypes.ParameterTextFieldC
 	if v, ok := tfMap["source_parameter_name"].(string); ok && v != "" {
 		apiObject.SourceParameterName = aws.String(v)
 	}
-	if v, ok := tfMap["title"].(string); ok && v != "" {
+	if v, ok := tfMap[attrTitle].(string); ok && v != "" {
 		apiObject.Title = aws.String(v)
 	}
 	if v, ok := tfMap["display_options"].([]any); ok && len(v) > 0 {
@@ -1139,7 +1139,7 @@ func flattenFilterDateTimePickerControl(apiObject *awstypes.FilterDateTimePicker
 	tfMap := map[string]any{
 		"filter_control_id": aws.ToString(apiObject.FilterControlId),
 		"source_filter_id":  aws.ToString(apiObject.SourceFilterId),
-		"title":             aws.ToString(apiObject.Title),
+		attrTitle:           aws.ToString(apiObject.Title),
 	}
 
 	if apiObject.DisplayOptions != nil {
@@ -1180,7 +1180,7 @@ func flattenLabelOptions(apiObject *awstypes.LabelOptions) []any {
 	if apiObject.FontConfiguration != nil {
 		tfMap["font_configuration"] = flattenFontConfiguration(apiObject.FontConfiguration)
 	}
-	tfMap["visibility"] = apiObject.Visibility
+	tfMap[attrVisibility] = apiObject.Visibility
 
 	return []any{tfMap}
 }
@@ -1239,7 +1239,7 @@ func flattenFilterDropDownControl(apiObject *awstypes.FilterDropDownControl) []a
 	tfMap := map[string]any{
 		"filter_control_id": aws.ToString(apiObject.FilterControlId),
 		"source_filter_id":  aws.ToString(apiObject.SourceFilterId),
-		"title":             aws.ToString(apiObject.Title),
+		attrTitle:           aws.ToString(apiObject.Title),
 	}
 
 	if apiObject.CascadingControlConfiguration != nil {
@@ -1316,7 +1316,7 @@ func flattenListControlSelectAllOptions(apiObject *awstypes.ListControlSelectAll
 	}
 
 	tfMap := map[string]any{
-		"visibility": apiObject.Visibility,
+		attrVisibility: apiObject.Visibility,
 	}
 
 	return []any{tfMap}
@@ -1344,7 +1344,7 @@ func flattenFilterListControl(apiObject *awstypes.FilterListControl) []any {
 	tfMap := map[string]any{
 		"filter_control_id": aws.ToString(apiObject.FilterControlId),
 		"source_filter_id":  aws.ToString(apiObject.SourceFilterId),
-		"title":             aws.ToString(apiObject.Title),
+		attrTitle:           aws.ToString(apiObject.Title),
 	}
 
 	if apiObject.CascadingControlConfiguration != nil {
@@ -1387,7 +1387,7 @@ func flattenListControlSearchOptions(apiObject *awstypes.ListControlSearchOption
 	}
 
 	tfMap := map[string]any{
-		"visibility": apiObject.Visibility,
+		attrVisibility: apiObject.Visibility,
 	}
 
 	return []any{tfMap}
@@ -1401,7 +1401,7 @@ func flattenFilterRelativeDateTimeControl(apiObject *awstypes.FilterRelativeDate
 	tfMap := map[string]any{
 		"filter_control_id": aws.ToString(apiObject.FilterControlId),
 		"source_filter_id":  aws.ToString(apiObject.SourceFilterId),
-		"title":             aws.ToString(apiObject.Title),
+		attrTitle:           aws.ToString(apiObject.Title),
 	}
 
 	if apiObject.DisplayOptions != nil {
@@ -1436,7 +1436,7 @@ func flattenFilterSliderControl(apiObject *awstypes.FilterSliderControl) []any {
 	tfMap := map[string]any{
 		"filter_control_id": aws.ToString(apiObject.FilterControlId),
 		"source_filter_id":  aws.ToString(apiObject.SourceFilterId),
-		"title":             aws.ToString(apiObject.Title),
+		attrTitle:           aws.ToString(apiObject.Title),
 		"maximum_value":     apiObject.MaximumValue,
 		"minimum_value":     apiObject.MinimumValue,
 		"step_size":         apiObject.StepSize,
@@ -1472,7 +1472,7 @@ func flattenFilterTextAreaControl(apiObject *awstypes.FilterTextAreaControl) []a
 	tfMap := map[string]any{
 		"filter_control_id": aws.ToString(apiObject.FilterControlId),
 		"source_filter_id":  aws.ToString(apiObject.SourceFilterId),
-		"title":             aws.ToString(apiObject.Title),
+		attrTitle:           aws.ToString(apiObject.Title),
 	}
 
 	if apiObject.Delimiter != nil {
@@ -1508,7 +1508,7 @@ func flattenTextControlPlaceholderOptions(apiObject *awstypes.TextControlPlaceho
 	}
 
 	tfMap := map[string]any{
-		"visibility": apiObject.Visibility,
+		attrVisibility: apiObject.Visibility,
 	}
 
 	return []any{tfMap}
@@ -1522,7 +1522,7 @@ func flattenFilterTextFieldControl(apiObject *awstypes.FilterTextFieldControl) [
 	tfMap := map[string]any{
 		"filter_control_id": aws.ToString(apiObject.FilterControlId),
 		"source_filter_id":  aws.ToString(apiObject.SourceFilterId),
-		"title":             aws.ToString(apiObject.Title),
+		attrTitle:           aws.ToString(apiObject.Title),
 	}
 
 	if apiObject.DisplayOptions != nil {

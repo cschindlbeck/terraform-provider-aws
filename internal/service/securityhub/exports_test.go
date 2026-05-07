@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package securityhub
@@ -6,6 +6,8 @@ package securityhub
 // Exports for use in tests only.
 var (
 	ResourceAccount                        = resourceAccount
+	ResourceAccountV2                      = newAccountV2Resource
+	ResourceAggregatorV2                   = newAggregatorV2Resource
 	ResourceActionTarget                   = resourceActionTarget
 	ResourceAutomationRule                 = newAutomationRuleResource
 	ResourceConfigurationPolicy            = resourceConfigurationPolicy
@@ -22,7 +24,9 @@ var (
 	ResourceStandardsSubscription          = resourceStandardsSubscription
 
 	AccountHubARN                                 = accountHubARN
+	FindAccountV2                                 = findAccountV2
 	FindActionTargetByARN                         = findActionTargetByARN
+	FindAggregatorV2ByARN                         = findAggregatorV2ByARN
 	FindAdminAccountByID                          = findAdminAccountByID
 	FindAutomationRuleByARN                       = findAutomationRuleByARN
 	FindConfigurationPolicyAssociationByID        = findConfigurationPolicyAssociationByID

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package schema
@@ -453,8 +453,8 @@ var freeFormLayoutElementsSchema = sync.OnceValue(func() *schema.Schema {
 					MaxItems: 1,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"color":      stringMatchSchema(attrOptional, `^#[0-9A-F]{6}(?:[0-9A-F]{2})?$`, ""),
-							"visibility": stringEnumSchema[awstypes.Visibility](attrOptional),
+							"color":        stringMatchSchema(attrOptional, `^#[0-9A-F]{6}(?:[0-9A-F]{2})?$`, ""),
+							attrVisibility: stringEnumSchema[awstypes.Visibility](attrOptional),
 						},
 					},
 				},
@@ -465,8 +465,8 @@ var freeFormLayoutElementsSchema = sync.OnceValue(func() *schema.Schema {
 					MaxItems: 1,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"color":      stringMatchSchema(attrOptional, `^#[0-9A-F]{6}(?:[0-9A-F]{2})?$`, ""),
-							"visibility": stringEnumSchema[awstypes.Visibility](attrOptional),
+							"color":        stringMatchSchema(attrOptional, `^#[0-9A-F]{6}(?:[0-9A-F]{2})?$`, ""),
+							attrVisibility: stringEnumSchema[awstypes.Visibility](attrOptional),
 						},
 					},
 				},
@@ -477,7 +477,7 @@ var freeFormLayoutElementsSchema = sync.OnceValue(func() *schema.Schema {
 					MaxItems: 1,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"visibility": stringEnumSchema[awstypes.Visibility](attrOptional),
+							attrVisibility: stringEnumSchema[awstypes.Visibility](attrOptional),
 						},
 					},
 				},
@@ -495,7 +495,7 @@ var freeFormLayoutElementsSchema = sync.OnceValue(func() *schema.Schema {
 								MaxItems: 1,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
-										"visibility": stringEnumSchema[awstypes.Visibility](attrOptional),
+										attrVisibility: stringEnumSchema[awstypes.Visibility](attrOptional),
 									},
 								},
 							},
@@ -510,12 +510,12 @@ var freeFormLayoutElementsSchema = sync.OnceValue(func() *schema.Schema {
 					MaxItems: 1,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"color":      stringMatchSchema(attrOptional, `^#[0-9A-F]{6}(?:[0-9A-F]{2})?$`, ""),
-							"visibility": stringEnumSchema[awstypes.Visibility](attrOptional),
+							"color":        stringMatchSchema(attrOptional, `^#[0-9A-F]{6}(?:[0-9A-F]{2})?$`, ""),
+							attrVisibility: stringEnumSchema[awstypes.Visibility](attrOptional),
 						},
 					},
 				},
-				"visibility": stringEnumSchema[awstypes.Visibility](attrOptional),
+				attrVisibility: stringEnumSchema[awstypes.Visibility](attrOptional),
 			},
 		},
 	}
@@ -892,7 +892,7 @@ func expandSheetDefinition(tfMap map[string]any) *awstypes.SheetDefinition {
 	if v, ok := tfMap[names.AttrName].(string); ok && v != "" {
 		apiObject.Name = aws.String(v)
 	}
-	if v, ok := tfMap["title"].(string); ok && v != "" {
+	if v, ok := tfMap[attrTitle].(string); ok && v != "" {
 		apiObject.Title = aws.String(v)
 	}
 	if v, ok := tfMap["filter_controls"].([]any); ok && len(v) > 0 {
@@ -1075,7 +1075,7 @@ func expandFreeFormLayoutElement(tfMap map[string]any) *awstypes.FreeFormLayoutE
 	if v, ok := tfMap["y_axis_location"].(string); ok && v != "" {
 		apiObject.YAxisLocation = aws.String(v)
 	}
-	if v, ok := tfMap["visibility"].(string); ok && v != "" {
+	if v, ok := tfMap[attrVisibility].(string); ok && v != "" {
 		apiObject.Visibility = awstypes.Visibility(v)
 	}
 	if v, ok := tfMap["background_style"].([]any); ok && len(v) > 0 {
@@ -1112,7 +1112,7 @@ func expandFreeFormLayoutElementBackgroundStyle(tfList []any) *awstypes.FreeForm
 	if v, ok := tfMap["color"].(string); ok && v != "" {
 		apiObject.Color = aws.String(v)
 	}
-	if v, ok := tfMap["visibility"].(string); ok && v != "" {
+	if v, ok := tfMap[attrVisibility].(string); ok && v != "" {
 		apiObject.Visibility = awstypes.Visibility(v)
 	}
 
@@ -1134,7 +1134,7 @@ func expandFreeFormLayoutElementBorderStyle(tfList []any) *awstypes.FreeFormLayo
 	if v, ok := tfMap["color"].(string); ok && v != "" {
 		apiObject.Color = aws.String(v)
 	}
-	if v, ok := tfMap["visibility"].(string); ok && v != "" {
+	if v, ok := tfMap[attrVisibility].(string); ok && v != "" {
 		apiObject.Visibility = awstypes.Visibility(v)
 	}
 
@@ -1153,7 +1153,7 @@ func expandLoadingAnimation(tfList []any) *awstypes.LoadingAnimation {
 
 	apiObject := &awstypes.LoadingAnimation{}
 
-	if v, ok := tfMap["visibility"].(string); ok && v != "" {
+	if v, ok := tfMap[attrVisibility].(string); ok && v != "" {
 		apiObject.Visibility = awstypes.Visibility(v)
 	}
 
@@ -1213,7 +1213,7 @@ func expandSheetElementConfigurationOverrides(tfList []any) *awstypes.SheetEleme
 
 	apiObject := &awstypes.SheetElementConfigurationOverrides{}
 
-	if v, ok := tfMap["visibility"].(string); ok && v != "" {
+	if v, ok := tfMap[attrVisibility].(string); ok && v != "" {
 		apiObject.Visibility = awstypes.Visibility(v)
 	}
 
@@ -1983,7 +1983,7 @@ func flattenFreeFormLayoutElement(apiObjects []awstypes.FreeFormLayoutElement) [
 		if apiObject.SelectedBorderStyle != nil {
 			tfMap["selected_border_style"] = flattenFreeFormLayoutElementBorderStyle(apiObject.SelectedBorderStyle)
 		}
-		tfMap["visibility"] = apiObject.Visibility
+		tfMap[attrVisibility] = apiObject.Visibility
 
 		tfList = append(tfList, tfMap)
 	}
@@ -2001,7 +2001,7 @@ func flattenFreeFormLayoutElementBackgroundStyle(apiObject *awstypes.FreeFormLay
 	if apiObject.Color != nil {
 		tfMap["color"] = aws.ToString(apiObject.Color)
 	}
-	tfMap["visibility"] = apiObject.Visibility
+	tfMap[attrVisibility] = apiObject.Visibility
 
 	return []any{tfMap}
 }
@@ -2016,7 +2016,7 @@ func flattenFreeFormLayoutElementBorderStyle(apiObject *awstypes.FreeFormLayoutE
 	if apiObject.Color != nil {
 		tfMap["color"] = aws.ToString(apiObject.Color)
 	}
-	tfMap["visibility"] = apiObject.Visibility
+	tfMap[attrVisibility] = apiObject.Visibility
 
 	return []any{tfMap}
 }
@@ -2028,7 +2028,7 @@ func flattenLoadingAnimation(apiObject *awstypes.LoadingAnimation) []any {
 
 	tfMap := map[string]any{}
 
-	tfMap["visibility"] = apiObject.Visibility
+	tfMap[attrVisibility] = apiObject.Visibility
 
 	return []any{tfMap}
 }
@@ -2063,7 +2063,7 @@ func flattenSheetElementConfigurationOverrides(apiObject *awstypes.SheetElementC
 
 	tfMap := map[string]any{}
 
-	tfMap["visibility"] = apiObject.Visibility
+	tfMap[attrVisibility] = apiObject.Visibility
 
 	return []any{tfMap}
 }

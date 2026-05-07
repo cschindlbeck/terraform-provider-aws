@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package schema
@@ -187,8 +187,8 @@ var separatorConfigurationSchema = sync.OnceValue(func() *schema.Schema {
 					Optional: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"symbol":     stringEnumSchema[awstypes.NumericSeparatorSymbol](attrOptional),
-							"visibility": stringEnumSchema[awstypes.Visibility](attrOptional),
+							"symbol":       stringEnumSchema[awstypes.NumericSeparatorSymbol](attrOptional),
+							attrVisibility: stringEnumSchema[awstypes.Visibility](attrOptional),
 						},
 					},
 				},
@@ -210,7 +210,7 @@ var labelOptionsSchema = sync.OnceValue(func() *schema.Schema {
 					Optional: true,
 				},
 				"font_configuration": fontConfigurationSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_FontConfiguration.html
-				"visibility":         stringEnumSchema[awstypes.Visibility](attrOptional),
+				attrVisibility:       stringEnumSchema[awstypes.Visibility](attrOptional),
 			},
 		},
 	}
@@ -477,7 +477,7 @@ func expandThousandSeparatorOptions(tfList []any) *awstypes.ThousandSeparatorOpt
 	if v, ok := tfMap["symbol"].(string); ok {
 		apiObject.Symbol = awstypes.NumericSeparatorSymbol(v)
 	}
-	if v, ok := tfMap["visibility"].(string); ok {
+	if v, ok := tfMap[attrVisibility].(string); ok {
 		apiObject.Visibility = awstypes.Visibility(v)
 	}
 
@@ -540,7 +540,7 @@ func expandLabelOptions(tfList []any) *awstypes.LabelOptions {
 	if v, ok := tfMap["custom_label"].(string); ok {
 		apiObject.CustomLabel = aws.String(v)
 	}
-	if v, ok := tfMap["visibility"].(string); ok {
+	if v, ok := tfMap[attrVisibility].(string); ok {
 		apiObject.Visibility = awstypes.Visibility(v)
 	}
 	if v, ok := tfMap["font_configuration"].([]any); ok && len(v) > 0 {
@@ -866,8 +866,8 @@ func flattenThousandSeparatorOptions(apiObject *awstypes.ThousandSeparatorOption
 	}
 
 	tfMap := map[string]any{
-		"symbol":     apiObject.Symbol,
-		"visibility": apiObject.Visibility,
+		"symbol":       apiObject.Symbol,
+		attrVisibility: apiObject.Visibility,
 	}
 
 	return []any{tfMap}

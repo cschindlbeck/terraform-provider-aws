@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package schema
@@ -24,7 +24,7 @@ func pivotTableVisualSchema() *schema.Schema {
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"visual_id":       idSchema(),
+				attrVisualID:      idSchema(),
 				names.AttrActions: visualCustomActionsSchema(customActionsMaxItems), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualCustomAction.html
 				"chart_configuration": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_PivotTableConfiguration.html
 					Type:     schema.TypeList,
@@ -75,7 +75,7 @@ func pivotTableVisualSchema() *schema.Schema {
 												Schema: map[string]*schema.Schema{
 													"field_id":     stringLenBetweenSchema(attrRequired, 1, 512),
 													"custom_label": stringLenBetweenSchema(attrOptional, 1, 2048),
-													"visibility":   stringEnumSchema[awstypes.Visibility](attrOptional),
+													attrVisibility: stringEnumSchema[awstypes.Visibility](attrOptional),
 												},
 											},
 										},
@@ -244,7 +244,7 @@ func pivotTableVisualSchema() *schema.Schema {
 					},
 				},
 				"subtitle": visualSubtitleLabelOptionsSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualSubtitleLabelOptions.html
-				"title":    visualTitleLabelOptionsSchema(),    // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualTitleLabelOptions.html
+				attrTitle:  visualTitleLabelOptionsSchema(),    // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualTitleLabelOptions.html
 			},
 		},
 	}
@@ -307,7 +307,7 @@ var tableCellStyleSchema = sync.OnceValue(func() *schema.Schema {
 				"horizontal_text_alignment": stringEnumSchema[awstypes.HorizontalTextAlignment](attrOptional),
 				"text_wrap":                 stringEnumSchema[awstypes.TextWrap](attrOptional),
 				"vertical_text_alignment":   stringEnumSchema[awstypes.VerticalTextAlignment](attrOptional),
-				"visibility":                stringEnumSchema[awstypes.Visibility](attrOptional),
+				attrVisibility:              stringEnumSchema[awstypes.Visibility](attrOptional),
 			},
 		},
 	}
@@ -418,7 +418,7 @@ func expandPivotTableVisual(tfList []any) *awstypes.PivotTableVisual {
 
 	apiObject := &awstypes.PivotTableVisual{}
 
-	if v, ok := tfMap["visual_id"].(string); ok && v != "" {
+	if v, ok := tfMap[attrVisualID].(string); ok && v != "" {
 		apiObject.VisualId = aws.String(v)
 	}
 	if v, ok := tfMap[names.AttrActions].([]any); ok && len(v) > 0 {
@@ -433,7 +433,7 @@ func expandPivotTableVisual(tfList []any) *awstypes.PivotTableVisual {
 	if v, ok := tfMap["subtitle"].([]any); ok && len(v) > 0 {
 		apiObject.Subtitle = expandVisualSubtitleLabelOptions(v)
 	}
-	if v, ok := tfMap["title"].([]any); ok && len(v) > 0 {
+	if v, ok := tfMap[attrTitle].([]any); ok && len(v) > 0 {
 		apiObject.Title = expandVisualTitleLabelOptions(v)
 	}
 
@@ -725,7 +725,7 @@ func expandPivotTableFieldOption(tfMap map[string]any) *awstypes.PivotTableField
 	if v, ok := tfMap["custom_label"].(string); ok && v != "" {
 		apiObject.CustomLabel = aws.String(v)
 	}
-	if v, ok := tfMap["visibility"].(string); ok && v != "" {
+	if v, ok := tfMap[attrVisibility].(string); ok && v != "" {
 		apiObject.Visibility = awstypes.Visibility(v)
 	}
 
@@ -827,7 +827,7 @@ func expandTableCellStyle(tfList []any) *awstypes.TableCellStyle {
 	if v, ok := tfMap["vertical_text_alignment"].(string); ok && v != "" {
 		apiObject.VerticalTextAlignment = awstypes.VerticalTextAlignment(v)
 	}
-	if v, ok := tfMap["visibility"].(string); ok && v != "" {
+	if v, ok := tfMap[attrVisibility].(string); ok && v != "" {
 		apiObject.Visibility = awstypes.Visibility(v)
 	}
 	if v, ok := tfMap["border"].([]any); ok && len(v) > 0 {
@@ -1190,7 +1190,7 @@ func flattenPivotTableVisual(apiObject *awstypes.PivotTableVisual) []any {
 	}
 
 	tfMap := map[string]any{
-		"visual_id": aws.ToString(apiObject.VisualId),
+		attrVisualID: aws.ToString(apiObject.VisualId),
 	}
 
 	if apiObject.Actions != nil {
@@ -1206,7 +1206,7 @@ func flattenPivotTableVisual(apiObject *awstypes.PivotTableVisual) []any {
 		tfMap["subtitle"] = flattenVisualSubtitleLabelOptions(apiObject.Subtitle)
 	}
 	if apiObject.Title != nil {
-		tfMap["title"] = flattenVisualTitleLabelOptions(apiObject.Title)
+		tfMap[attrTitle] = flattenVisualTitleLabelOptions(apiObject.Title)
 	}
 
 	return []any{tfMap}
@@ -1442,7 +1442,7 @@ func flattenTableCellStyle(apiObject *awstypes.TableCellStyle) []any {
 		"horizontal_text_alignment": apiObject.HorizontalTextAlignment,
 		"text_wrap":                 apiObject.TextWrap,
 		"vertical_text_alignment":   apiObject.VerticalTextAlignment,
-		"visibility":                apiObject.Visibility,
+		attrVisibility:              apiObject.Visibility,
 	}
 
 	if apiObject.BackgroundColor != nil {
@@ -1650,7 +1650,7 @@ func flattenPivotTableFieldOption(apiObjects []awstypes.PivotTableFieldOption) [
 
 	for _, apiObject := range apiObjects {
 		tfMap := map[string]any{
-			"visibility": apiObject.Visibility,
+			attrVisibility: apiObject.Visibility,
 		}
 
 		if apiObject.FieldId != nil {
