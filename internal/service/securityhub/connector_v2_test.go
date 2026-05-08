@@ -47,7 +47,7 @@ func testAccConnectorV2_basic(t *testing.T) {
 					},
 				},
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New(names.AttrARN), tfknownvalue.RegionalARNRegexp("securityhub", regexache.MustCompile(`connector/.+`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New(names.AttrARN), tfknownvalue.RegionalARNRegexp("securityhub", regexache.MustCompile(`connectorv2/.+`))),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("connector_id"), knownvalue.NotNull()),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("health"), knownvalue.ListSizeExact(1)),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New(names.AttrName), knownvalue.StringExact(rName)),
@@ -276,9 +276,12 @@ func testAccConnectorV2Config_basic(rName string) string {
 	return acctest.ConfigCompose(testAccConnectorV2Config_base(), fmt.Sprintf(`
 resource "aws_securityhub_connector_v2" "test" {
   name = %[1]q
-  provider_json = jsonencode({
-    ProjectKey = "TEST"
-  })
+
+  connector_provider {
+    jira_cloud {
+      project_key = "TEST"
+    }
+  }
 
   depends_on = [aws_securityhub_aggregator_v2.test]
 }
@@ -290,9 +293,12 @@ func testAccConnectorV2Config_description(rName, description string) string {
 resource "aws_securityhub_connector_v2" "test" {
   name        = %[1]q
   description = %[2]q
-  provider_json = jsonencode({
-    ProjectKey = "TEST"
-  })
+
+  connector_provider {
+    jira_cloud {
+      project_key = "TEST"
+    }
+  }
 
   depends_on = [aws_securityhub_aggregator_v2.test]
 }
@@ -303,9 +309,12 @@ func testAccConnectorV2Config_tags1(rName, tagKey1, tagValue1 string) string {
 	return acctest.ConfigCompose(testAccConnectorV2Config_base(), fmt.Sprintf(`
 resource "aws_securityhub_connector_v2" "test" {
   name = %[1]q
-  provider_json = jsonencode({
-    ProjectKey = "TEST"
-  })
+
+  connector_provider {
+    jira_cloud {
+      project_key = "TEST"
+    }
+  }
 
   tags = {
     %[2]q = %[3]q
@@ -320,9 +329,12 @@ func testAccConnectorV2Config_tags2(rName, tagKey1, tagValue1, tagKey2, tagValue
 	return acctest.ConfigCompose(testAccConnectorV2Config_base(), fmt.Sprintf(`
 resource "aws_securityhub_connector_v2" "test" {
   name = %[1]q
-  provider_json = jsonencode({
-    ProjectKey = "TEST"
-  })
+
+  connector_provider {
+    jira_cloud {
+      project_key = "TEST"
+    }
+  }
 
   tags = {
     %[2]q = %[3]q
@@ -333,3 +345,5 @@ resource "aws_securityhub_connector_v2" "test" {
 }
 `, rName, tagKey1, tagValue1, tagKey2, tagValue2))
 }
+
+// TODO: kms_key_arn, provider update, ServiceNow.

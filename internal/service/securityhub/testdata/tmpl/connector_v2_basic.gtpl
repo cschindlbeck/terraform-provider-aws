@@ -2,9 +2,11 @@ resource "aws_securityhub_connector_v2" "test" {
 {{ template "region" }}
   name = var.rName
 
-  provider_json = jsonencode({
-    ProjectKey = "TEST"
-  })
+  connector_provider {
+    jira_cloud {
+      project_key = "TEST"
+    }
+  }
 
 {{- template "tags" . }}
 

@@ -5,18 +5,23 @@ package securityhub
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"reflect"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	awstypes "github.com/aws/aws-sdk-go-v2/service/securityhub/types"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-provider-aws/internal/create"
 	"github.com/hashicorp/terraform-provider-aws/internal/errs"
 	"github.com/hashicorp/terraform-provider-aws/internal/errs/fwdiag"
 	"github.com/hashicorp/terraform-provider-aws/internal/framework"
@@ -48,13 +53,7 @@ type connectorV2Resource struct {
 func (r *connectorV2Resource) Schema(ctx context.Context, request resource.SchemaRequest, response *resource.SchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			names.AttrARN: framework.ARNAttributeComputedOnly(),
-			"auth_url": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
+			names.AttrARN:  framework.ARNAttributeComputedOnly(),
 			"connector_id": framework.IDAttribute(),
 			names.AttrDescription: schema.StringAttribute{
 				Optional: true,
@@ -73,14 +72,73 @@ func (r *connectorV2Resource) Schema(ctx context.Context, request resource.Schem
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"provider_json": schema.StringAttribute{
-				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
 			names.AttrTags:    tftags.TagsAttribute(),
 			names.AttrTagsAll: tftags.TagsAttributeComputedOnly(),
+		},
+		Blocks: map[string]schema.Block{
+			"connector_provider": schema.ListNestedBlock{
+				CustomType: fwtypes.NewListNestedObjectTypeOf[providerDetailModel](ctx),
+				Validators: []validator.List{
+					listvalidator.IsRequired(),
+					listvalidator.SizeAtMost(1),
+				},
+				NestedObject: schema.NestedBlockObject{
+					Blocks: map[string]schema.Block{
+						"jira_cloud": schema.ListNestedBlock{
+							CustomType: fwtypes.NewListNestedObjectTypeOf[jiraCloudDetailModel](ctx),
+							Validators: []validator.List{
+								listvalidator.SizeAtMost(1),
+								listvalidator.ExactlyOneOf(
+									path.MatchRelative().AtParent().AtName("jira_cloud"),
+									path.MatchRelative().AtParent().AtName("service_now"),
+								),
+							},
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"auth_status": schema.StringAttribute{
+										Computed: true,
+									},
+									"auth_url": schema.StringAttribute{
+										Computed: true,
+									},
+									"cloud_id": schema.StringAttribute{
+										Computed: true,
+									},
+									"domain": schema.StringAttribute{
+										Computed: true,
+									},
+									"project_key": schema.StringAttribute{
+										Required: true,
+									},
+								},
+							},
+						},
+						"service_now": schema.ListNestedBlock{
+							CustomType: fwtypes.NewListNestedObjectTypeOf[serviceNowDetailModel](ctx),
+							Validators: []validator.List{
+								listvalidator.SizeAtMost(1),
+							},
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"auth_status": schema.StringAttribute{
+										Computed: true,
+									},
+									"instance_name": schema.StringAttribute{
+										Required: true,
+										PlanModifiers: []planmodifier.String{
+											stringplanmodifier.RequiresReplace(),
+										},
+									},
+									"secret_arn": schema.StringAttribute{
+										CustomType: fwtypes.ARNType,
+										Required:   true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -94,28 +152,18 @@ func (r *connectorV2Resource) Create(ctx context.Context, request resource.Creat
 
 	conn := r.Meta().SecurityHubClient(ctx)
 
-	var providerCfg awstypes.JiraCloudProviderConfiguration
-	if err := json.Unmarshal([]byte(data.ProviderJSON.ValueString()), &providerCfg); err != nil {
-		response.Diagnostics.AddError("creating Security Hub V2 Connector", "invalid provider_json: "+err.Error())
+	name := fwflex.StringValueFromFramework(ctx, data.Name)
+	var input securityhub.CreateConnectorV2Input
+	response.Diagnostics.Append(fwflex.Expand(ctx, data, &input)...)
+	if response.Diagnostics.HasError() {
 		return
 	}
 
-	name := fwflex.StringValueFromFramework(ctx, data.Name)
-	input := securityhub.CreateConnectorV2Input{
-		Name:     data.Name.ValueStringPointer(),
-		Provider: &awstypes.ProviderConfigurationMemberJiraCloud{Value: providerCfg},
-		Tags:     getTagsIn(ctx),
-	}
+	// Additional fields.
+	input.ClientToken = aws.String(create.UniqueId(ctx))
+	input.Tags = getTagsIn(ctx)
 
-	if !data.Description.IsNull() {
-		input.Description = data.Description.ValueStringPointer()
-	}
-
-	if !data.KmsKeyARN.IsNull() {
-		input.KmsKeyArn = data.KmsKeyARN.ValueStringPointer()
-	}
-
-	output, err := conn.CreateConnectorV2(ctx, &input)
+	outputCC, err := conn.CreateConnectorV2(ctx, &input)
 
 	if err != nil {
 		response.Diagnostics.AddError(fmt.Sprintf("creating Security Hub V2 Connector (%s)", name), err.Error())
@@ -123,7 +171,15 @@ func (r *connectorV2Resource) Create(ctx context.Context, request resource.Creat
 	}
 
 	// Set values for unknowns.
-	response.Diagnostics.Append(fwflex.Flatten(ctx, output, &data)...)
+	connectorID := aws.ToString(outputCC.ConnectorId)
+	outputGC, err := findConnectorV2ByID(ctx, conn, connectorID)
+
+	if err != nil {
+		response.Diagnostics.AddError(fmt.Sprintf("reading Security Hub V2 Connector (%s)", connectorID), err.Error())
+		return
+	}
+
+	response.Diagnostics.Append(fwflex.Flatten(ctx, outputGC, &data, fwflex.WithFieldNameSuffix("Detail"))...)
 	if response.Diagnostics.HasError() {
 		return
 	}
@@ -155,7 +211,7 @@ func (r *connectorV2Resource) Read(ctx context.Context, request resource.ReadReq
 	}
 
 	// Set attributes for import.
-	response.Diagnostics.Append(fwflex.Flatten(ctx, output, &data)...)
+	response.Diagnostics.Append(fwflex.Flatten(ctx, output, &data, fwflex.WithFieldNameSuffix("Detail"))...)
 	if response.Diagnostics.HasError() {
 		return
 	}
@@ -176,17 +232,37 @@ func (r *connectorV2Resource) Update(ctx context.Context, request resource.Updat
 
 	conn := r.Meta().SecurityHubClient(ctx)
 
-	if !new.Description.Equal(old.Description) {
+	diff, diags := fwflex.Diff(ctx, new, old)
+	response.Diagnostics.Append(diags...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	if diff.HasChanges() {
 		connectorID := fwflex.StringValueFromFramework(ctx, new.ConnectorID)
-		input := securityhub.UpdateConnectorV2Input{
-			ConnectorId: aws.String(connectorID),
-			Description: fwflex.StringFromFramework(ctx, new.Description),
+		var input securityhub.UpdateConnectorV2Input
+		response.Diagnostics.Append(fwflex.Expand(ctx, new, &input)...)
+		if response.Diagnostics.HasError() {
+			return
 		}
 
 		_, err := conn.UpdateConnectorV2(ctx, &input)
 
 		if err != nil {
 			response.Diagnostics.AddError(fmt.Sprintf("updating Security Hub V2 Connector (%s)", connectorID), err.Error())
+			return
+		}
+
+		// Set values for unknowns.
+		output, err := findConnectorV2ByID(ctx, conn, connectorID)
+
+		if err != nil {
+			response.Diagnostics.AddError(fmt.Sprintf("reading Security Hub V2 Connector (%s)", connectorID), err.Error())
+			return
+		}
+
+		response.Diagnostics.Append(fwflex.Flatten(ctx, output, &new, fwflex.WithFieldNameSuffix("Detail"))...)
+		if response.Diagnostics.HasError() {
 			return
 		}
 	}
@@ -249,20 +325,142 @@ func findConnectorV2(ctx context.Context, conn *securityhub.Client, input *secur
 
 type connectorV2ResourceModel struct {
 	framework.WithRegionModel
-	AuthURL      types.String                                      `tfsdk:"auth_url"`
-	ConnectorARN types.String                                      `tfsdk:"arn"`
-	ConnectorID  types.String                                      `tfsdk:"connector_id"`
-	Description  types.String                                      `tfsdk:"description"`
-	Health       fwtypes.ListNestedObjectValueOf[healthCheckModel] `tfsdk:"health"`
-	KmsKeyARN    fwtypes.ARN                                       `tfsdk:"kms_key_arn"`
-	Name         types.String                                      `tfsdk:"name"`
-	ProviderJSON types.String                                      `tfsdk:"provider_json"`
-	Tags         tftags.Map                                        `tfsdk:"tags"`
-	TagsAll      tftags.Map                                        `tfsdk:"tags_all"`
+	ConnectorARN types.String                                         `tfsdk:"arn"`
+	ConnectorID  types.String                                         `tfsdk:"connector_id"`
+	Description  types.String                                         `tfsdk:"description"`
+	Health       fwtypes.ListNestedObjectValueOf[healthCheckModel]    `tfsdk:"health"`
+	KmsKeyARN    fwtypes.ARN                                          `tfsdk:"kms_key_arn"`
+	Name         types.String                                         `tfsdk:"name"`
+	Provider     fwtypes.ListNestedObjectValueOf[providerDetailModel] `tfsdk:"connector_provider"`
+	Tags         tftags.Map                                           `tfsdk:"tags"`
+	TagsAll      tftags.Map                                           `tfsdk:"tags_all"`
 }
 
 type healthCheckModel struct {
 	ConnectorStatus types.String      `tfsdk:"connector_status"`
 	LastCheckedAt   timetypes.RFC3339 `tfsdk:"last_checked_at"`
 	Message         types.String      `tfsdk:"message"`
+}
+
+type providerDetailModel struct {
+	JiraCloud  fwtypes.ListNestedObjectValueOf[jiraCloudDetailModel]  `tfsdk:"jira_cloud"`
+	ServiceNow fwtypes.ListNestedObjectValueOf[serviceNowDetailModel] `tfsdk:"service_now"`
+}
+
+var (
+	_ fwflex.TypedExpander = providerDetailModel{}
+	_ fwflex.Flattener     = &providerDetailModel{}
+)
+
+func (m providerDetailModel) ExpandTo(ctx context.Context, targetType reflect.Type) (any, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	switch targetType {
+	case reflect.TypeFor[awstypes.ProviderConfiguration]():
+		return m.expandToProviderConfiguration(ctx)
+	case reflect.TypeFor[awstypes.ProviderUpdateConfiguration]():
+		return m.expandToProviderUpdateConfiguration(ctx)
+	}
+	return nil, diags
+}
+
+func (m providerDetailModel) expandToProviderConfiguration(ctx context.Context) (awstypes.ProviderConfiguration, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	switch {
+	case !m.JiraCloud.IsNull():
+		data, d := m.JiraCloud.ToPtr(ctx)
+		diags.Append(d...)
+		if diags.HasError() {
+			return nil, diags
+		}
+		var r awstypes.ProviderConfigurationMemberJiraCloud
+		diags.Append(fwflex.Expand(ctx, data, &r.Value)...)
+		if diags.HasError() {
+			return nil, diags
+		}
+		return &r, diags
+	case !m.ServiceNow.IsNull():
+		data, d := m.ServiceNow.ToPtr(ctx)
+		diags.Append(d...)
+		if diags.HasError() {
+			return nil, diags
+		}
+		var r awstypes.ProviderConfigurationMemberServiceNow
+		diags.Append(fwflex.Expand(ctx, data, &r.Value)...)
+		if diags.HasError() {
+			return nil, diags
+		}
+		return &r, diags
+	}
+	return nil, diags
+}
+
+func (m providerDetailModel) expandToProviderUpdateConfiguration(ctx context.Context) (awstypes.ProviderUpdateConfiguration, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	switch {
+	case !m.JiraCloud.IsNull():
+		data, d := m.JiraCloud.ToPtr(ctx)
+		diags.Append(d...)
+		if diags.HasError() {
+			return nil, diags
+		}
+		var r awstypes.ProviderUpdateConfigurationMemberJiraCloud
+		diags.Append(fwflex.Expand(ctx, data, &r.Value)...)
+		if diags.HasError() {
+			return nil, diags
+		}
+		return &r, diags
+	case !m.ServiceNow.IsNull():
+		data, d := m.ServiceNow.ToPtr(ctx)
+		diags.Append(d...)
+		if diags.HasError() {
+			return nil, diags
+		}
+		var r awstypes.ProviderUpdateConfigurationMemberServiceNow
+		diags.Append(fwflex.Expand(ctx, data, &r.Value)...)
+		if diags.HasError() {
+			return nil, diags
+		}
+		return &r, diags
+	}
+	return nil, diags
+}
+
+func (m *providerDetailModel) Flatten(ctx context.Context, v any) diag.Diagnostics {
+	var diags diag.Diagnostics
+	switch t := v.(type) {
+	case awstypes.ProviderDetailMemberJiraCloud:
+		var data jiraCloudDetailModel
+		diags.Append(fwflex.Flatten(ctx, t.Value, &data)...)
+		if diags.HasError() {
+			return diags
+		}
+		m.JiraCloud = fwtypes.NewListNestedObjectValueOfPtrMust(ctx, &data)
+	case awstypes.ProviderDetailMemberServiceNow:
+		var data serviceNowDetailModel
+		diags.Append(fwflex.Flatten(ctx, t.Value, &data)...)
+		if diags.HasError() {
+			return diags
+		}
+		m.ServiceNow = fwtypes.NewListNestedObjectValueOfPtrMust(ctx, &data)
+	default:
+		diags.AddError(
+			"Unsupported Type",
+			fmt.Sprintf("provider flatten: %T", v),
+		)
+	}
+	return diags
+}
+
+type jiraCloudDetailModel struct {
+	AuthStatus types.String `tfsdk:"auth_status"`
+	AuthURL    types.String `tfsdk:"auth_url"`
+	CloudID    types.String `tfsdk:"cloud_id"`
+	Domain     types.String `tfsdk:"domain"`
+	ProjectKey types.String `tfsdk:"project_key"`
+}
+
+type serviceNowDetailModel struct {
+	AuthStatus   types.String `tfsdk:"auth_status"`
+	InstanceName types.String `tfsdk:"instance_name"`
+	SecretARN    fwtypes.ARN  `tfsdk:"secret_arn"`
 }

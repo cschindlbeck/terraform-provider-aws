@@ -5,9 +5,11 @@ resource "aws_securityhub_connector_v2" "test" {
 
   name = var.rName
 
-  provider_json = jsonencode({
-    ProjectKey = "TEST"
-  })
+  connector_provider {
+    jira_cloud {
+      project_key = "TEST"
+    }
+  }
 
   depends_on = [aws_securityhub_aggregator_v2.test]
 }
