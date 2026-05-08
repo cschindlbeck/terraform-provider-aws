@@ -43,7 +43,7 @@ func testAccTelemetryEvaluationForOrganization_basic(t *testing.T) {
 	acctest.Test(ctx, t, resource.TestCase{
 		PreCheck: func() {
 			acctest.PreCheck(ctx, t)
-			acctest.PreCheckOrganizationsAccount(ctx, t)
+			acctest.PreCheckOrganizationManagementAccount(ctx, t)
 			testAccTelemetryEvaluationForOrganizationPreCheck(ctx, t)
 		},
 		ErrorCheck:               acctest.ErrorCheck(t, names.ObservabilityAdminServiceID),
@@ -75,7 +75,7 @@ func testAccTelemetryEvaluationForOrganization_disappears(t *testing.T) {
 	acctest.Test(ctx, t, resource.TestCase{
 		PreCheck: func() {
 			acctest.PreCheck(ctx, t)
-			acctest.PreCheckOrganizationsAccount(ctx, t)
+			acctest.PreCheckOrganizationManagementAccount(ctx, t)
 			testAccTelemetryEvaluationForOrganizationPreCheck(ctx, t)
 		},
 		ErrorCheck:               acctest.ErrorCheck(t, names.ObservabilityAdminServiceID),

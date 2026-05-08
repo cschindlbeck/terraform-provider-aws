@@ -30,6 +30,7 @@ import (
 // @SingletonIdentity(identityDuplicateAttributes="id")
 // @Testing(serialize=true)
 // @Testing(hasNoPreExistingResource=true)
+// @Testing(preCheck="github.com/hashicorp/terraform-provider-aws/internal/acctest;acctest.PreCheckOrganizationManagementAccount")
 // @Testing(preCheck="testAccTelemetryEvaluationForOrganizationPreCheck")
 // @Testing(generator=false)
 func newTelemetryEvaluationForOrganizationResource(_ context.Context) (resource.ResourceWithConfigure, error) {

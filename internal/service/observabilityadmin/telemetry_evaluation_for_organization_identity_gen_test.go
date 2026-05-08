@@ -43,6 +43,7 @@ func testAccObservabilityAdminTelemetryEvaluationForOrganization_Identity_basic(
 		},
 		PreCheck: func() {
 			acctest.PreCheck(ctx, t)
+			acctest.PreCheckOrganizationManagementAccount(ctx, t)
 			testAccTelemetryEvaluationForOrganizationPreCheck(ctx, t)
 		},
 		ErrorCheck:               acctest.ErrorCheck(t, names.ObservabilityAdminServiceID),
@@ -120,6 +121,7 @@ func testAccObservabilityAdminTelemetryEvaluationForOrganization_Identity_region
 		},
 		PreCheck: func() {
 			acctest.PreCheck(ctx, t)
+			acctest.PreCheckOrganizationManagementAccount(ctx, t)
 			testAccTelemetryEvaluationForOrganizationPreCheck(ctx, t)
 		},
 		ErrorCheck:               acctest.ErrorCheck(t, names.ObservabilityAdminServiceID),
