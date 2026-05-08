@@ -7,8 +7,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	awstypes "github.com/aws/aws-sdk-go-v2/service/securityhub/types"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -28,13 +28,12 @@ import (
 )
 
 // @FrameworkResource("aws_securityhub_connector_v2", name="Connector V2")
-// @ArnIdentity
+// @IdentityAttribute("connector_id")
 // @Tags(identifierAttribute="arn")
 // @Testing(existsType="github.com/aws/aws-sdk-go-v2/service/securityhub;securityhub;securityhub.GetConnectorV2Output")
 // @Testing(serialize=true)
 // @Testing(tagsTest=false)
 // @Testing(hasNoPreExistingResource=true)
-// @Testing(generator=false)
 func newConnectorV2Resource(_ context.Context) (resource.ResourceWithConfigure, error) {
 	return &connectorV2Resource{}, nil
 }
@@ -54,18 +53,7 @@ func (r *connectorV2Resource) Schema(ctx context.Context, request resource.Schem
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"connector_id": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"connector_status": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
+			"connector_id": framework.IDAttribute(),
 			names.AttrDescription: schema.StringAttribute{
 				Optional: true,
 			},
@@ -149,14 +137,7 @@ func (r *connectorV2Resource) Read(ctx context.Context, request resource.ReadReq
 
 	conn := r.Meta().SecurityHubClient(ctx)
 
-	// On import, only ARN is set. Extract connector_id from the ARN resource path.
-	connectorID := data.ConnectorID.ValueString()
-	if connectorID == "" {
-		if parts := strings.Split(data.ConnectorARN.ValueString(), "/"); len(parts) > 1 {
-			connectorID = parts[len(parts)-1]
-		}
-	}
-
+	connectorID := fwflex.StringValueFromFramework(ctx, data.ConnectorID)
 	output, err := findConnectorV2ByID(ctx, conn, connectorID)
 
 	if retry.NotFound(err) {
@@ -166,7 +147,7 @@ func (r *connectorV2Resource) Read(ctx context.Context, request resource.ReadReq
 	}
 
 	if err != nil {
-		response.Diagnostics.AddError("reading Security Hub V2 Connector", err.Error())
+		response.Diagnostics.AddError(fmt.Sprintf("reading Security Hub V2 Connector (%s)", connectorID), err.Error())
 		return
 	}
 
@@ -193,24 +174,19 @@ func (r *connectorV2Resource) Update(ctx context.Context, request resource.Updat
 	conn := r.Meta().SecurityHubClient(ctx)
 
 	if !new.Description.Equal(old.Description) {
+		connectorID := fwflex.StringValueFromFramework(ctx, new.ConnectorID)
 		input := securityhub.UpdateConnectorV2Input{
-			ConnectorId: old.ConnectorID.ValueStringPointer(),
-		}
-
-		if !new.Description.IsNull() {
-			input.Description = new.Description.ValueStringPointer()
+			ConnectorId: aws.String(connectorID),
+			Description: fwflex.StringFromFramework(ctx, new.Description),
 		}
 
 		_, err := conn.UpdateConnectorV2(ctx, &input)
 
 		if err != nil {
-			response.Diagnostics.AddError("updating Security Hub V2 Connector", err.Error())
+			response.Diagnostics.AddError(fmt.Sprintf("updating Security Hub V2 Connector (%s)", connectorID), err.Error())
 			return
 		}
 	}
-
-	new.ConnectorStatus = old.ConnectorStatus
-	new.AuthURL = old.AuthURL
 
 	response.Diagnostics.Append(response.State.Set(ctx, &new)...)
 }
@@ -224,8 +200,9 @@ func (r *connectorV2Resource) Delete(ctx context.Context, request resource.Delet
 
 	conn := r.Meta().SecurityHubClient(ctx)
 
+	connectorID := fwflex.StringValueFromFramework(ctx, data.ConnectorID)
 	input := securityhub.DeleteConnectorV2Input{
-		ConnectorId: data.ConnectorID.ValueStringPointer(),
+		ConnectorId: aws.String(connectorID),
 	}
 	_, err := conn.DeleteConnectorV2(ctx, &input)
 
@@ -234,17 +211,23 @@ func (r *connectorV2Resource) Delete(ctx context.Context, request resource.Delet
 	}
 
 	if err != nil {
-		response.Diagnostics.AddError("deleting Security Hub V2 Connector", err.Error())
+		response.Diagnostics.AddError(fmt.Sprintf("deleting Security Hub V2 Connector (%s)", connectorID), err.Error())
+		return
 	}
 }
 
 func findConnectorV2ByID(ctx context.Context, conn *securityhub.Client, connectorID string) (*securityhub.GetConnectorV2Output, error) {
 	input := securityhub.GetConnectorV2Input{
-		ConnectorId: &connectorID,
+		ConnectorId: aws.String(connectorID),
 	}
-	output, err := conn.GetConnectorV2(ctx, &input)
 
-	if errs.IsA[*awstypes.ResourceNotFoundException](err) {
+	return findConnectorV2(ctx, conn, &input)
+}
+
+func findConnectorV2(ctx context.Context, conn *securityhub.Client, input *securityhub.GetConnectorV2Input) (*securityhub.GetConnectorV2Output, error) {
+	output, err := conn.GetConnectorV2(ctx, input)
+
+	if errs.IsA[*awstypes.ResourceNotFoundException](err) || errs.IsAErrorMessageContains[*awstypes.ConflictException](err, "Security Hub V2 is not enabled") {
 		return nil, &retry.NotFoundError{
 			LastError: err,
 		}
@@ -263,14 +246,15 @@ func findConnectorV2ByID(ctx context.Context, conn *securityhub.Client, connecto
 
 type connectorV2ResourceModel struct {
 	framework.WithRegionModel
-	AuthURL         types.String `tfsdk:"auth_url"`
-	ConnectorARN    types.String `tfsdk:"arn"`
-	ConnectorID     types.String `tfsdk:"connector_id"`
-	ConnectorStatus types.String `tfsdk:"connector_status"`
-	Description     types.String `tfsdk:"description"`
-	KmsKeyARN       fwtypes.ARN  `tfsdk:"kms_key_arn"`
-	Name            types.String `tfsdk:"name"`
-	ProviderJSON    types.String `tfsdk:"provider_json"`
-	Tags            tftags.Map   `tfsdk:"tags"`
-	TagsAll         tftags.Map   `tfsdk:"tags_all"`
+	AuthURL      types.String `tfsdk:"auth_url"`
+	ConnectorARN types.String `tfsdk:"arn"`
+	ConnectorID  types.String `tfsdk:"connector_id"`
+	Description  types.String `tfsdk:"description"`
+	KmsKeyARN    fwtypes.ARN  `tfsdk:"kms_key_arn"`
+	Name         types.String `tfsdk:"name"`
+	ProviderJSON types.String `tfsdk:"provider_json"`
+	Tags         tftags.Map   `tfsdk:"tags"`
+	TagsAll      tftags.Map   `tfsdk:"tags_all"`
 }
+
+// TODO Health

@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-aws/internal/acctest"
+	tfknownvalue "github.com/hashicorp/terraform-provider-aws/internal/acctest/knownvalue"
 	"github.com/hashicorp/terraform-provider-aws/names"
 )
 
@@ -36,6 +37,7 @@ func testAccSecurityHubConnectorV2_Identity_basic(t *testing.T) {
 
 	var v securityhub.GetConnectorV2Output
 	resourceName := "aws_securityhub_connector_v2.test"
+	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
 
 	acctest.Test(ctx, t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -49,42 +51,47 @@ func testAccSecurityHubConnectorV2_Identity_basic(t *testing.T) {
 			// Step 1: Setup
 			{
 				ConfigDirectory: config.StaticDirectory("testdata/ConnectorV2/basic/"),
-				ConfigVariables: config.Variables{},
+				ConfigVariables: config.Variables{
+					acctest.CtRName: config.StringVariable(rName),
+				},
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckConnectorV2Exists(ctx, t, resourceName, &v),
 				),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New(names.AttrRegion), knownvalue.StringExact(acctest.Region())),
 					statecheck.ExpectIdentity(resourceName, map[string]knownvalue.Check{
-						names.AttrARN: knownvalue.NotNull(),
+						names.AttrAccountID: tfknownvalue.AccountID(),
+						names.AttrRegion:    knownvalue.StringExact(acctest.Region()),
+						"connector_id":      knownvalue.NotNull(),
 					}),
-					statecheck.ExpectIdentityValueMatchesState(resourceName, tfjsonpath.New(names.AttrARN)),
+					statecheck.ExpectIdentityValueMatchesState(resourceName, tfjsonpath.New("connector_id")),
 				},
 			},
 
 			// Step 2: Import command
 			{
-				ConfigDirectory:                      config.StaticDirectory("testdata/ConnectorV2/basic/"),
-				ConfigVariables:                      config.Variables{},
-				ImportStateKind:                      resource.ImportCommandWithID,
-				ImportStateIdFunc:                    acctest.AttrImportStateIdFunc(resourceName, names.AttrARN),
-				ResourceName:                         resourceName,
-				ImportState:                          true,
-				ImportStateVerify:                    true,
-				ImportStateVerifyIdentifierAttribute: names.AttrARN,
+				ConfigDirectory: config.StaticDirectory("testdata/ConnectorV2/basic/"),
+				ConfigVariables: config.Variables{
+					acctest.CtRName: config.StringVariable(rName),
+				},
+				ImportStateKind:   resource.ImportCommandWithID,
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 
 			// Step 3: Import block with Import ID
 			{
-				ConfigDirectory:   config.StaticDirectory("testdata/ConnectorV2/basic/"),
-				ConfigVariables:   config.Variables{},
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateKind:   resource.ImportBlockWithID,
-				ImportStateIdFunc: acctest.AttrImportStateIdFunc(resourceName, names.AttrARN),
+				ConfigDirectory: config.StaticDirectory("testdata/ConnectorV2/basic/"),
+				ConfigVariables: config.Variables{
+					acctest.CtRName: config.StringVariable(rName),
+				},
+				ResourceName:    resourceName,
+				ImportState:     true,
+				ImportStateKind: resource.ImportBlockWithID,
 				ImportPlanChecks: resource.ImportPlanChecks{
 					PreApply: []plancheck.PlanCheck{
-						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New(names.AttrARN), knownvalue.NotNull()),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("connector_id"), knownvalue.NotNull()),
 						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New(names.AttrRegion), knownvalue.StringExact(acctest.Region())),
 					},
 				},
@@ -93,13 +100,15 @@ func testAccSecurityHubConnectorV2_Identity_basic(t *testing.T) {
 			// Step 4: Import block with Resource Identity
 			{
 				ConfigDirectory: config.StaticDirectory("testdata/ConnectorV2/basic/"),
-				ConfigVariables: config.Variables{},
+				ConfigVariables: config.Variables{
+					acctest.CtRName: config.StringVariable(rName),
+				},
 				ResourceName:    resourceName,
 				ImportState:     true,
 				ImportStateKind: resource.ImportBlockWithResourceIdentity,
 				ImportPlanChecks: resource.ImportPlanChecks{
 					PreApply: []plancheck.PlanCheck{
-						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New(names.AttrARN), knownvalue.NotNull()),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("connector_id"), knownvalue.NotNull()),
 						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New(names.AttrRegion), knownvalue.StringExact(acctest.Region())),
 					},
 				},
@@ -112,6 +121,7 @@ func testAccSecurityHubConnectorV2_Identity_regionOverride(t *testing.T) {
 	ctx := acctest.Context(t)
 
 	resourceName := "aws_securityhub_connector_v2.test"
+	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
 
 	acctest.Test(ctx, t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -126,93 +136,66 @@ func testAccSecurityHubConnectorV2_Identity_regionOverride(t *testing.T) {
 			{
 				ConfigDirectory: config.StaticDirectory("testdata/ConnectorV2/region_override/"),
 				ConfigVariables: config.Variables{
-					"region": config.StringVariable(acctest.AlternateRegion()),
+					acctest.CtRName: config.StringVariable(rName),
+					"region":        config.StringVariable(acctest.AlternateRegion()),
 				},
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New(names.AttrRegion), knownvalue.StringExact(acctest.AlternateRegion())),
 					statecheck.ExpectIdentity(resourceName, map[string]knownvalue.Check{
-						names.AttrARN: knownvalue.NotNull(),
+						names.AttrAccountID: tfknownvalue.AccountID(),
+						names.AttrRegion:    knownvalue.StringExact(acctest.AlternateRegion()),
+						"connector_id":      knownvalue.NotNull(),
 					}),
-					statecheck.ExpectIdentityValueMatchesState(resourceName, tfjsonpath.New(names.AttrARN)),
+					statecheck.ExpectIdentityValueMatchesState(resourceName, tfjsonpath.New("connector_id")),
 				},
 			},
 
-			// Step 2: Import command with appended "@<region>"
+			// Step 2: Import command
 			{
 				ConfigDirectory: config.StaticDirectory("testdata/ConnectorV2/region_override/"),
 				ConfigVariables: config.Variables{
-					"region": config.StringVariable(acctest.AlternateRegion()),
+					acctest.CtRName: config.StringVariable(rName),
+					"region":        config.StringVariable(acctest.AlternateRegion()),
 				},
-				ImportStateKind:                      resource.ImportCommandWithID,
-				ImportStateIdFunc:                    acctest.CrossRegionAttrImportStateIdFunc(resourceName, names.AttrARN),
-				ResourceName:                         resourceName,
-				ImportState:                          true,
-				ImportStateVerify:                    true,
-				ImportStateVerifyIdentifierAttribute: names.AttrARN,
+				ImportStateKind:   resource.ImportCommandWithID,
+				ImportStateIdFunc: acctest.CrossRegionImportStateIdFunc(resourceName),
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 
-			// Step 3: Import command without appended "@<region>"
+			// Step 3: Import block with Import ID
 			{
 				ConfigDirectory: config.StaticDirectory("testdata/ConnectorV2/region_override/"),
 				ConfigVariables: config.Variables{
-					"region": config.StringVariable(acctest.AlternateRegion()),
-				},
-				ImportStateKind:                      resource.ImportCommandWithID,
-				ImportStateIdFunc:                    acctest.AttrImportStateIdFunc(resourceName, names.AttrARN),
-				ResourceName:                         resourceName,
-				ImportState:                          true,
-				ImportStateVerify:                    true,
-				ImportStateVerifyIdentifierAttribute: names.AttrARN,
-			},
-
-			// Step 4: Import block with Import ID and appended "@<region>"
-			{
-				ConfigDirectory: config.StaticDirectory("testdata/ConnectorV2/region_override/"),
-				ConfigVariables: config.Variables{
-					"region": config.StringVariable(acctest.AlternateRegion()),
+					acctest.CtRName: config.StringVariable(rName),
+					"region":        config.StringVariable(acctest.AlternateRegion()),
 				},
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateKind:   resource.ImportBlockWithID,
-				ImportStateIdFunc: acctest.CrossRegionAttrImportStateIdFunc(resourceName, names.AttrARN),
+				ImportStateIdFunc: acctest.CrossRegionImportStateIdFunc(resourceName),
 				ImportPlanChecks: resource.ImportPlanChecks{
 					PreApply: []plancheck.PlanCheck{
-						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New(names.AttrARN), knownvalue.NotNull()),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("connector_id"), knownvalue.NotNull()),
 						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New(names.AttrRegion), knownvalue.StringExact(acctest.AlternateRegion())),
 					},
 				},
 			},
 
-			// Step 5: Import block with Import ID and no appended "@<region>"
+			// Step 4: Import block with Resource Identity
 			{
 				ConfigDirectory: config.StaticDirectory("testdata/ConnectorV2/region_override/"),
 				ConfigVariables: config.Variables{
-					"region": config.StringVariable(acctest.AlternateRegion()),
-				},
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateKind:   resource.ImportBlockWithID,
-				ImportStateIdFunc: acctest.AttrImportStateIdFunc(resourceName, names.AttrARN),
-				ImportPlanChecks: resource.ImportPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New(names.AttrARN), knownvalue.NotNull()),
-						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New(names.AttrRegion), knownvalue.StringExact(acctest.AlternateRegion())),
-					},
-				},
-			},
-
-			// Step 6: Import block with Resource Identity
-			{
-				ConfigDirectory: config.StaticDirectory("testdata/ConnectorV2/region_override/"),
-				ConfigVariables: config.Variables{
-					"region": config.StringVariable(acctest.AlternateRegion()),
+					acctest.CtRName: config.StringVariable(rName),
+					"region":        config.StringVariable(acctest.AlternateRegion()),
 				},
 				ResourceName:    resourceName,
 				ImportState:     true,
 				ImportStateKind: resource.ImportBlockWithResourceIdentity,
 				ImportPlanChecks: resource.ImportPlanChecks{
 					PreApply: []plancheck.PlanCheck{
-						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New(names.AttrARN), knownvalue.NotNull()),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("connector_id"), knownvalue.NotNull()),
 						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New(names.AttrRegion), knownvalue.StringExact(acctest.AlternateRegion())),
 					},
 				},

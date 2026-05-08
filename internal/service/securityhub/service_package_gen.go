@@ -94,7 +94,7 @@ func (p *servicePackage) FrameworkResources(ctx context.Context) []*inttypes.Ser
 				IdentifierAttribute: names.AttrARN,
 			}),
 			Region:   inttypes.ResourceRegionDefault(),
-			Identity: inttypes.RegionalARNIdentity(),
+			Identity: inttypes.RegionalSingleParameterIdentity(inttypes.StringIdentityAttribute("connector_id", true)),
 			Import: inttypes.FrameworkImport{
 				WrappedImport: true,
 			},

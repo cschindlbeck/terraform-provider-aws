@@ -74,7 +74,6 @@ This resource exports the following attributes in addition to the arguments abov
 * `arn` - ARN of the connector.
 * `auth_url` - OAuth URL for connector authorization. Use this to complete the OAuth flow after creation.
 * `connector_id` - ID of the connector.
-* `connector_status` - Current status of the connector (`CONNECTED`, `FAILED_TO_CONNECT`, `PENDING_CONFIGURATION`, `PENDING_AUTHORIZATION`).
 * `tags_all` - Map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](https://registry.terraform.io/providers/hashicorp/aws/latest/docs#default_tags-configuration-block).
 
 ## Import
