@@ -101,7 +101,12 @@ func (r *telemetryEvaluationForOrganizationResource) Create(ctx context.Context,
 		return
 	}
 
-	_, err := conn.StartTelemetryEvaluationForOrganization(ctx, &input)
+	const (
+		timeout = 1 * time.Minute
+	)
+	_, err := tfresource.RetryWhenIsA[any, *awstypes.ConflictException](ctx, timeout, func(ctx context.Context) (any, error) {
+		return conn.StartTelemetryEvaluationForOrganization(ctx, &input)
+	})
 	if err != nil {
 		smerr.AddError(ctx, &resp.Diagnostics, err)
 		return

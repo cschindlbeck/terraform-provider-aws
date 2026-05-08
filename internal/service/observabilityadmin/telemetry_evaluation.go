@@ -77,7 +77,12 @@ func (r *telemetryEvaluationResource) Create(ctx context.Context, req resource.C
 	conn := r.Meta().ObservabilityAdminClient(ctx)
 
 	var input observabilityadmin.StartTelemetryEvaluationInput
-	_, err := conn.StartTelemetryEvaluation(ctx, &input)
+	const (
+		timeout = 1 * time.Minute
+	)
+	_, err := tfresource.RetryWhenIsA[any, *awstypes.ConflictException](ctx, timeout, func(ctx context.Context) (any, error) {
+		return conn.StartTelemetryEvaluation(ctx, &input)
+	})
 	if err != nil {
 		smerr.AddError(ctx, &resp.Diagnostics, err)
 		return
