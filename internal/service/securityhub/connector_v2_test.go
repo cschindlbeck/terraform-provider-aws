@@ -455,5 +455,3 @@ resource "aws_securityhub_connector_v2" "test" {
 }
 `, rName, tagKey1, tagValue1, tagKey2, tagValue2))
 }
-
-// TODO: ServiceNow.

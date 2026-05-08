@@ -71,6 +71,9 @@ func TestAccSecurityHub_serial(t *testing.T) {
 			"KMSKeyARN":               testAccConnectorV2_kmsKeyARN,
 			"ConnectorProviderUpdate": testAccConnectorV2_connectorProviderUpdate,
 			"Identity":                testAccSecurityHubConnectorV2_identitySerial,
+			"ListBasic":               testAccConnectorV2_List_basic,
+			"ListIncludeResource":     testAccConnectorV2_List_includeResource,
+			"ListRegionOverride":      testAccConnectorV2_List_regionOverride,
 		},
 		"EnabledStandards": {
 			acctest.CtBasic:            testAccEnabledStandardsDataSource_basic,

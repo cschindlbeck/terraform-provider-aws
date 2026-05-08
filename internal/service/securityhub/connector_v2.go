@@ -179,7 +179,7 @@ func (r *connectorV2Resource) Create(ctx context.Context, request resource.Creat
 		return
 	}
 
-	response.Diagnostics.Append(fwflex.Flatten(ctx, outputGC, &data, fwflex.WithFieldNameSuffix("Detail"))...)
+	response.Diagnostics.Append(r.flatten(ctx, outputGC, &data)...)
 	if response.Diagnostics.HasError() {
 		return
 	}
@@ -211,7 +211,7 @@ func (r *connectorV2Resource) Read(ctx context.Context, request resource.ReadReq
 	}
 
 	// Set attributes for import.
-	response.Diagnostics.Append(fwflex.Flatten(ctx, output, &data, fwflex.WithFieldNameSuffix("Detail"))...)
+	response.Diagnostics.Append(r.flatten(ctx, output, &data)...)
 	if response.Diagnostics.HasError() {
 		return
 	}
@@ -261,7 +261,7 @@ func (r *connectorV2Resource) Update(ctx context.Context, request resource.Updat
 			return
 		}
 
-		response.Diagnostics.Append(fwflex.Flatten(ctx, output, &new, fwflex.WithFieldNameSuffix("Detail"))...)
+		response.Diagnostics.Append(r.flatten(ctx, output, &new)...)
 		if response.Diagnostics.HasError() {
 			return
 		}
@@ -293,6 +293,12 @@ func (r *connectorV2Resource) Delete(ctx context.Context, request resource.Delet
 		response.Diagnostics.AddError(fmt.Sprintf("deleting Security Hub V2 Connector (%s)", connectorID), err.Error())
 		return
 	}
+}
+
+func (r *connectorV2Resource) flatten(ctx context.Context, connectorV2 *securityhub.GetConnectorV2Output, data *connectorV2ResourceModel) diag.Diagnostics {
+	var diags diag.Diagnostics
+	diags.Append(fwflex.Flatten(ctx, connectorV2, data, fwflex.WithFieldNameSuffix("Detail"))...)
+	return diags
 }
 
 func findConnectorV2ByID(ctx context.Context, conn *securityhub.Client, connectorID string) (*securityhub.GetConnectorV2Output, error) {
