@@ -280,7 +280,7 @@ var axisDisplayOptionsDataSourceSchema = sync.OnceValue(func() *schema.Schema {
 					Computed: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"visibility": stringEnumDataSourceSchema[awstypes.Visibility](),
+							attrVisibility: stringEnumDataSourceSchema[awstypes.Visibility](),
 							"visible_range": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisibleRangeOptions.html
 								Type:     schema.TypeList,
 								Computed: true,
@@ -386,7 +386,7 @@ var chartAxisLabelOptionsDataSourceSchema = sync.OnceValue(func() *schema.Schema
 					},
 				},
 				"sort_icon_visibility": stringEnumDataSourceSchema[awstypes.Visibility](),
-				"visibility":           stringEnumDataSourceSchema[awstypes.Visibility](),
+				attrVisibility:         stringEnumDataSourceSchema[awstypes.Visibility](),
 			},
 		},
 	}
@@ -562,7 +562,7 @@ var referenceLineSchema = sync.OnceValue(func() *schema.Schema {
 					MaxItems: 1,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"color":   hexColorSchema(attrOptional),
+							attrColor: hexColorSchema(attrOptional),
 							"pattern": stringEnumSchema[awstypes.ReferenceLinePatternType](attrOptional),
 						},
 					},
@@ -644,7 +644,7 @@ var referenceLineDataSourceSchema = sync.OnceValue(func() *schema.Schema {
 					Computed: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"color":   stringComputedOnly(),
+							attrColor: stringComputedOnly(),
 							"pattern": stringEnumDataSourceSchema[awstypes.ReferenceLinePatternType](),
 						},
 					},
@@ -727,14 +727,14 @@ var smallMultiplesOptionsDataSourceSchema = sync.OnceValue(func() *schema.Schema
 							"border_visibility":     stringEnumDataSourceSchema[awstypes.Visibility](),
 							"gutter_spacing":        stringComputedOnly(),
 							"gutter_visibility":     stringEnumDataSourceSchema[awstypes.Visibility](),
-							"title": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_PanelTitleOptions.html
+							attrTitle: { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_PanelTitleOptions.html
 								Type:     schema.TypeList,
 								Computed: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
 										"font_configuration":        fontConfigurationDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_FontConfiguration.html
 										"horizontal_text_alignment": stringEnumDataSourceSchema[awstypes.HorizontalTextAlignment](),
-										"visibility":                stringEnumDataSourceSchema[awstypes.Visibility](),
+										attrVisibility:              stringEnumDataSourceSchema[awstypes.Visibility](),
 									},
 								},
 							},
@@ -1385,7 +1385,7 @@ func expandReferenceLineStyleConfiguration(tfList []any) *awstypes.ReferenceLine
 
 	apiObject := &awstypes.ReferenceLineStyleConfiguration{}
 
-	if v, ok := tfMap["color"].(string); ok && v != "" {
+	if v, ok := tfMap[attrColor].(string); ok && v != "" {
 		apiObject.Color = aws.String(v)
 	}
 	if v, ok := tfMap["pattern"].(string); ok && v != "" {
@@ -1973,7 +1973,7 @@ func flattenReferenceLineStyleConfiguration(apiObject *awstypes.ReferenceLineSty
 	tfMap := map[string]any{}
 
 	if apiObject.Color != nil {
-		tfMap["color"] = aws.ToString(apiObject.Color)
+		tfMap[attrColor] = aws.ToString(apiObject.Color)
 	}
 	tfMap["pattern"] = apiObject.Pattern
 

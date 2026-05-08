@@ -776,7 +776,7 @@ var freeFormLayoutElementsSchema = sync.OnceValue(func() *schema.Schema {
 					MaxItems: 1,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"color":        stringMatchSchema(attrOptional, `^#[0-9A-F]{6}(?:[0-9A-F]{2})?$`, ""),
+							attrColor:      stringMatchSchema(attrOptional, `^#[0-9A-F]{6}(?:[0-9A-F]{2})?$`, ""),
 							attrVisibility: stringEnumSchema[awstypes.Visibility](attrOptional),
 						},
 					},
@@ -788,7 +788,7 @@ var freeFormLayoutElementsSchema = sync.OnceValue(func() *schema.Schema {
 					MaxItems: 1,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"color":        stringMatchSchema(attrOptional, `^#[0-9A-F]{6}(?:[0-9A-F]{2})?$`, ""),
+							attrColor:      stringMatchSchema(attrOptional, `^#[0-9A-F]{6}(?:[0-9A-F]{2})?$`, ""),
 							attrVisibility: stringEnumSchema[awstypes.Visibility](attrOptional),
 						},
 					},
@@ -833,7 +833,7 @@ var freeFormLayoutElementsSchema = sync.OnceValue(func() *schema.Schema {
 					MaxItems: 1,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"color":        stringMatchSchema(attrOptional, `^#[0-9A-F]{6}(?:[0-9A-F]{2})?$`, ""),
+							attrColor:      stringMatchSchema(attrOptional, `^#[0-9A-F]{6}(?:[0-9A-F]{2})?$`, ""),
 							attrVisibility: stringEnumSchema[awstypes.Visibility](attrOptional),
 						},
 					},
@@ -861,8 +861,8 @@ var freeFormLayoutElementsDataSourceSchema = sync.OnceValue(func() *schema.Schem
 					Computed: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"color":      stringComputedOnly(),
-							"visibility": stringEnumDataSourceSchema[awstypes.Visibility](),
+							attrColor:      stringComputedOnly(),
+							attrVisibility: stringEnumDataSourceSchema[awstypes.Visibility](),
 						},
 					},
 				},
@@ -871,8 +871,8 @@ var freeFormLayoutElementsDataSourceSchema = sync.OnceValue(func() *schema.Schem
 					Computed: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"color":      stringComputedOnly(),
-							"visibility": stringEnumDataSourceSchema[awstypes.Visibility](),
+							attrColor:      stringComputedOnly(),
+							attrVisibility: stringEnumDataSourceSchema[awstypes.Visibility](),
 						},
 					},
 				},
@@ -881,7 +881,7 @@ var freeFormLayoutElementsDataSourceSchema = sync.OnceValue(func() *schema.Schem
 					Computed: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"visibility": stringEnumDataSourceSchema[awstypes.Visibility](),
+							attrVisibility: stringEnumDataSourceSchema[awstypes.Visibility](),
 						},
 					},
 				},
@@ -895,7 +895,7 @@ var freeFormLayoutElementsDataSourceSchema = sync.OnceValue(func() *schema.Schem
 								Computed: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
-										"visibility": stringEnumDataSourceSchema[awstypes.Visibility](),
+										attrVisibility: stringEnumDataSourceSchema[awstypes.Visibility](),
 									},
 								},
 							},
@@ -908,12 +908,12 @@ var freeFormLayoutElementsDataSourceSchema = sync.OnceValue(func() *schema.Schem
 					Computed: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"color":      stringComputedOnly(),
-							"visibility": stringEnumDataSourceSchema[awstypes.Visibility](),
+							attrColor:      stringComputedOnly(),
+							attrVisibility: stringEnumDataSourceSchema[awstypes.Visibility](),
 						},
 					},
 				},
-				"visibility": stringEnumDataSourceSchema[awstypes.Visibility](),
+				attrVisibility: stringEnumDataSourceSchema[awstypes.Visibility](),
 			},
 		},
 	}
@@ -1542,7 +1542,7 @@ func expandFreeFormLayoutElementBackgroundStyle(tfList []any) *awstypes.FreeForm
 
 	apiObject := &awstypes.FreeFormLayoutElementBackgroundStyle{}
 
-	if v, ok := tfMap["color"].(string); ok && v != "" {
+	if v, ok := tfMap[attrColor].(string); ok && v != "" {
 		apiObject.Color = aws.String(v)
 	}
 	if v, ok := tfMap[attrVisibility].(string); ok && v != "" {
@@ -1564,7 +1564,7 @@ func expandFreeFormLayoutElementBorderStyle(tfList []any) *awstypes.FreeFormLayo
 
 	apiObject := &awstypes.FreeFormLayoutElementBorderStyle{}
 
-	if v, ok := tfMap["color"].(string); ok && v != "" {
+	if v, ok := tfMap[attrColor].(string); ok && v != "" {
 		apiObject.Color = aws.String(v)
 	}
 	if v, ok := tfMap[attrVisibility].(string); ok && v != "" {
@@ -2432,7 +2432,7 @@ func flattenFreeFormLayoutElementBackgroundStyle(apiObject *awstypes.FreeFormLay
 	tfMap := map[string]any{}
 
 	if apiObject.Color != nil {
-		tfMap["color"] = aws.ToString(apiObject.Color)
+		tfMap[attrColor] = aws.ToString(apiObject.Color)
 	}
 	tfMap[attrVisibility] = apiObject.Visibility
 
@@ -2447,7 +2447,7 @@ func flattenFreeFormLayoutElementBorderStyle(apiObject *awstypes.FreeFormLayoutE
 	tfMap := map[string]any{}
 
 	if apiObject.Color != nil {
-		tfMap["color"] = aws.ToString(apiObject.Color)
+		tfMap[attrColor] = aws.ToString(apiObject.Color)
 	}
 	tfMap[attrVisibility] = apiObject.Visibility
 
