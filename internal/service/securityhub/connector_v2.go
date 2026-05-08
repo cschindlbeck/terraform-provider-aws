@@ -104,7 +104,7 @@ func (r *connectorV2Resource) Schema(ctx context.Context, request resource.Schem
 									"cloud_id": schema.StringAttribute{
 										Computed: true,
 									},
-									"domain": schema.StringAttribute{
+									names.AttrDomain: schema.StringAttribute{
 										Computed: true,
 									},
 									"project_key": schema.StringAttribute{
