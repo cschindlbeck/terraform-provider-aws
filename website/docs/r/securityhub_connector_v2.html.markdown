@@ -74,7 +74,16 @@ This resource exports the following attributes in addition to the arguments abov
 * `arn` - ARN of the connector.
 * `auth_url` - OAuth URL for connector authorization. Use this to complete the OAuth flow after creation.
 * `connector_id` - ID of the connector.
+* `health` - Current health status.
 * `tags_all` - Map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](https://registry.terraform.io/providers/hashicorp/aws/latest/docs#default_tags-configuration-block).
+
+### Health Status
+
+The `health` object supports the following:
+
+* `connector_status` - Status of the connector.
+* `last_checked_at` - Timestamp for the time the health status was checked.
+* `message` - Message for the reason of `connector_status` change.
 
 ## Import
 
@@ -84,7 +93,7 @@ In Terraform v1.12.0 and later, the [`import` block](https://developer.hashicorp
 import {
   to = aws_securityhub_connector_v2.example
   identity = {
-    arn = "arn:aws:securityhub:us-west-2:123456789012:connector/abc-123"
+    connector_id = "a1b2c3d4-5678-90ab-cdef-EXAMPLE11111"
   }
 }
 
@@ -97,21 +106,19 @@ resource "aws_securityhub_connector_v2" "example" {
 
 #### Required
 
-- `arn` (String) Amazon Resource Name (ARN) of the Security Hub V2 Connector.
+- `connector_id` (String) ID of the Security Hub V2 connector.
 
-In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Security Hub V2 Connectors using `arn`. For example:
+In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Security Hub V2 connectors using `connector_id`. For example:
 
 ```terraform
 import {
   to = aws_securityhub_connector_v2.example
-  id = "arn:aws:securityhub:us-west-2:123456789012:connector/abc-123"
+  id = "a1b2c3d4-5678-90ab-cdef-EXAMPLE11111"
 }
 ```
 
-Using `terraform import`, import Security Hub V2 Connectors using `arn`. For example:
+Using `terraform import`, import Security Hub V2 connectors using `connector_id`. For example:
 
 ```console
-% terraform import aws_securityhub_connector_v2.example arn:aws:securityhub:us-west-2:123456789012:connector/abc-123
+% terraform import aws_securityhub_connector_v2.example a1b2c3d4-5678-90ab-cdef-EXAMPLE11111
 ```
-
-~> **NOTE:** The `provider_json`, `auth_url`, and `connector_status` attributes are not populated on import and must be set in configuration where applicable.

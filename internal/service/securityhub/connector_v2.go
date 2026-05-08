@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	awstypes "github.com/aws/aws-sdk-go-v2/service/securityhub/types"
+	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -34,6 +35,7 @@ import (
 // @Testing(serialize=true)
 // @Testing(tagsTest=false)
 // @Testing(hasNoPreExistingResource=true)
+// @Testing(importStateIdAttribute="connector_id")
 func newConnectorV2Resource(_ context.Context) (resource.ResourceWithConfigure, error) {
 	return &connectorV2Resource{}, nil
 }
@@ -57,6 +59,7 @@ func (r *connectorV2Resource) Schema(ctx context.Context, request resource.Schem
 			names.AttrDescription: schema.StringAttribute{
 				Optional: true,
 			},
+			"health": framework.ResourceComputedListOfObjectsAttribute[healthCheckModel](ctx),
 			names.AttrKMSKeyARN: schema.StringAttribute{
 				CustomType: fwtypes.ARNType,
 				Optional:   true,
@@ -246,15 +249,20 @@ func findConnectorV2(ctx context.Context, conn *securityhub.Client, input *secur
 
 type connectorV2ResourceModel struct {
 	framework.WithRegionModel
-	AuthURL      types.String `tfsdk:"auth_url"`
-	ConnectorARN types.String `tfsdk:"arn"`
-	ConnectorID  types.String `tfsdk:"connector_id"`
-	Description  types.String `tfsdk:"description"`
-	KmsKeyARN    fwtypes.ARN  `tfsdk:"kms_key_arn"`
-	Name         types.String `tfsdk:"name"`
-	ProviderJSON types.String `tfsdk:"provider_json"`
-	Tags         tftags.Map   `tfsdk:"tags"`
-	TagsAll      tftags.Map   `tfsdk:"tags_all"`
+	AuthURL      types.String                                      `tfsdk:"auth_url"`
+	ConnectorARN types.String                                      `tfsdk:"arn"`
+	ConnectorID  types.String                                      `tfsdk:"connector_id"`
+	Description  types.String                                      `tfsdk:"description"`
+	Health       fwtypes.ListNestedObjectValueOf[healthCheckModel] `tfsdk:"health"`
+	KmsKeyARN    fwtypes.ARN                                       `tfsdk:"kms_key_arn"`
+	Name         types.String                                      `tfsdk:"name"`
+	ProviderJSON types.String                                      `tfsdk:"provider_json"`
+	Tags         tftags.Map                                        `tfsdk:"tags"`
+	TagsAll      tftags.Map                                        `tfsdk:"tags_all"`
 }
 
-// TODO Health
+type healthCheckModel struct {
+	ConnectorStatus types.String      `tfsdk:"connector_status"`
+	LastCheckedAt   timetypes.RFC3339 `tfsdk:"last_checked_at"`
+	Message         types.String      `tfsdk:"message"`
+}

@@ -49,16 +49,16 @@ func testAccConnectorV2_basic(t *testing.T) {
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New(names.AttrARN), tfknownvalue.RegionalARNRegexp("securityhub", regexache.MustCompile(`connector/.+`))),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("connector_id"), knownvalue.NotNull()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("health"), knownvalue.ListSizeExact(1)),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New(names.AttrName), knownvalue.StringExact(rName)),
 				},
 			},
 			{
-				ImportStateIdFunc:                    acctest.AttrImportStateIdFunc(resourceName, names.AttrARN),
+				ImportStateIdFunc:                    acctest.AttrImportStateIdFunc(resourceName, "connector_id"),
 				ResourceName:                         resourceName,
 				ImportState:                          true,
 				ImportStateVerify:                    true,
-				ImportStateVerifyIdentifierAttribute: names.AttrARN,
-				ImportStateVerifyIgnore:              []string{"auth_url", "connector_status", "provider_json"},
+				ImportStateVerifyIdentifierAttribute: "connector_id",
 			},
 		},
 	})
@@ -169,12 +169,11 @@ func testAccConnectorV2_tags(t *testing.T) {
 				},
 			},
 			{
-				ImportStateIdFunc:                    acctest.AttrImportStateIdFunc(resourceName, names.AttrARN),
+				ImportStateIdFunc:                    acctest.AttrImportStateIdFunc(resourceName, "connector_id"),
 				ResourceName:                         resourceName,
 				ImportState:                          true,
 				ImportStateVerify:                    true,
-				ImportStateVerifyIdentifierAttribute: names.AttrARN,
-				ImportStateVerifyIgnore:              []string{"auth_url", "connector_status", "provider_json"},
+				ImportStateVerifyIdentifierAttribute: "connector_id",
 			},
 			{
 				Config: testAccConnectorV2Config_tags2(rName, acctest.CtKey1, acctest.CtValue1Updated, acctest.CtKey2, acctest.CtValue2),
@@ -243,12 +242,7 @@ func testAccCheckConnectorV2Destroy(ctx context.Context, t *testing.T) resource.
 				continue
 			}
 
-			connectorID := rs.Primary.Attributes["connector_id"]
-			if connectorID == "" {
-				continue
-			}
-
-			_, err := tfsecurityhub.FindConnectorV2ByID(ctx, conn, connectorID)
+			_, err := tfsecurityhub.FindConnectorV2ByID(ctx, conn, rs.Primary.Attributes["connector_id"])
 
 			if retry.NotFound(err) {
 				continue
@@ -258,7 +252,7 @@ func testAccCheckConnectorV2Destroy(ctx context.Context, t *testing.T) resource.
 				return err
 			}
 
-			return fmt.Errorf("Security Hub V2 Connector %s still exists", rs.Primary.Attributes[names.AttrARN])
+			return fmt.Errorf("Security Hub V2 Connector %s still exists", rs.Primary.Attributes["connector_id"])
 		}
 
 		return nil
