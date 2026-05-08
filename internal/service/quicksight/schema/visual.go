@@ -117,11 +117,11 @@ var legendOptionsDataSourceSchema = sync.OnceValue(func() *schema.Schema {
 		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"height":     stringComputedOnly(),
-				"position":   stringEnumDataSourceSchema[awstypes.LegendPosition](),
-				"title":      labelOptionsDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_LabelOptions.html
-				"visibility": stringEnumDataSourceSchema[awstypes.Visibility](),
-				"width":      stringComputedOnly(),
+				"height":       stringComputedOnly(),
+				"position":     stringEnumDataSourceSchema[awstypes.LegendPosition](),
+				attrTitle:      labelOptionsDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_LabelOptions.html
+				attrVisibility: stringEnumDataSourceSchema[awstypes.Visibility](),
+				"width":        stringComputedOnly(),
 			},
 		},
 	}
@@ -219,10 +219,10 @@ var tooltipOptionsDataSourceSchema = sync.OnceValue(func() *schema.Schema {
 											Computed: true,
 											Elem: &schema.Resource{
 												Schema: map[string]*schema.Schema{
-													attrColumn:    columnDataSourceSchema(),              // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
-													"aggregation": aggregationFunctionDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_AggregationFunction.html
-													"label":       stringComputedOnly(),
-													"visibility":  stringEnumDataSourceSchema[awstypes.Visibility](),
+													attrColumn:     columnDataSourceSchema(),              // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+													"aggregation":  aggregationFunctionDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_AggregationFunction.html
+													"label":        stringComputedOnly(),
+													attrVisibility: stringEnumDataSourceSchema[awstypes.Visibility](),
 												},
 											},
 										},
@@ -231,9 +231,9 @@ var tooltipOptionsDataSourceSchema = sync.OnceValue(func() *schema.Schema {
 											Computed: true,
 											Elem: &schema.Resource{
 												Schema: map[string]*schema.Schema{
-													attrFieldID:  stringComputedOnly(),
-													"label":      stringComputedOnly(),
-													"visibility": stringEnumDataSourceSchema[awstypes.Visibility](),
+													attrFieldID:    stringComputedOnly(),
+													"label":        stringComputedOnly(),
+													attrVisibility: stringEnumDataSourceSchema[awstypes.Visibility](),
 												},
 											},
 										},
@@ -267,7 +267,7 @@ var visualPaletteSchema = sync.OnceValue(func() *schema.Schema {
 					MaxItems: 5000,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"color":            hexColorSchema(attrRequired),
+							attrColor:          hexColorSchema(attrRequired),
 							"element":          dataPathValueSchema(1), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_DataPathValue.html
 							"time_granularity": stringEnumSchema[awstypes.TimeGranularity](attrOptional),
 						},
@@ -290,7 +290,7 @@ var visualPaletteDataSourceSchema = sync.OnceValue(func() *schema.Schema {
 					Computed: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"color":            stringComputedOnly(),
+							attrColor:          stringComputedOnly(),
 							"element":          dataPathValueDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_DataPathValue.html
 							"time_granularity": stringEnumDataSourceSchema[awstypes.TimeGranularity](),
 						},
@@ -485,8 +485,8 @@ var visualSubtitleLabelOptionsDataSourceSchema = sync.OnceValue(func() *schema.S
 		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"format_text": longFormatTextDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_LongFormatText.html
-				"visibility":  stringEnumDataSourceSchema[awstypes.Visibility](),
+				"format_text":  longFormatTextDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_LongFormatText.html
+				attrVisibility: stringEnumDataSourceSchema[awstypes.Visibility](),
 			},
 		},
 	}
@@ -570,8 +570,8 @@ var visualTitleLabelOptionsDataSourceSchema = sync.OnceValue(func() *schema.Sche
 		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"format_text": shortFormatTextDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ShortFormatText.html
-				"visibility":  stringEnumDataSourceSchema[awstypes.Visibility](),
+				"format_text":  shortFormatTextDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ShortFormatText.html
+				attrVisibility: stringEnumDataSourceSchema[awstypes.Visibility](),
 			},
 		},
 	}
@@ -641,7 +641,7 @@ var colorScaleSchema = sync.OnceValue(func() *schema.Schema {
 					MaxItems: 3,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"color": hexColorSchema(attrOptional),
+							attrColor: hexColorSchema(attrOptional),
 							"data_value": {
 								Type:     schema.TypeFloat,
 								Optional: true,
@@ -656,7 +656,7 @@ var colorScaleSchema = sync.OnceValue(func() *schema.Schema {
 					MaxItems: 1,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"color": hexColorSchema(attrOptional),
+							attrColor: hexColorSchema(attrOptional),
 							"data_value": {
 								Type:     schema.TypeFloat,
 								Optional: true,
@@ -681,7 +681,7 @@ var colorScaleDataSourceSchema = sync.OnceValue(func() *schema.Schema {
 					Computed: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"color":      stringComputedOnly(),
+							attrColor:    stringComputedOnly(),
 							"data_value": floatComputedOnly(),
 						},
 					},
@@ -691,7 +691,7 @@ var colorScaleDataSourceSchema = sync.OnceValue(func() *schema.Schema {
 					Computed: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"color":      stringComputedOnly(),
+							attrColor:    stringComputedOnly(),
 							"data_value": floatComputedOnly(),
 						},
 					},
@@ -807,9 +807,9 @@ var dataLabelOptionsDataSourceSchema = sync.OnceValue(func() *schema.Schema {
 								Computed: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
-										attrFieldID:   stringComputedOnly(),
-										"field_value": stringComputedOnly(),
-										"visibility":  stringEnumDataSourceSchema[awstypes.Visibility](),
+										attrFieldID:    stringComputedOnly(),
+										"field_value":  stringComputedOnly(),
+										attrVisibility: stringEnumDataSourceSchema[awstypes.Visibility](),
 									},
 								},
 							},
@@ -818,8 +818,8 @@ var dataLabelOptionsDataSourceSchema = sync.OnceValue(func() *schema.Schema {
 								Computed: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
-										attrFieldID:  stringComputedOnly(),
-										"visibility": stringEnumDataSourceSchema[awstypes.Visibility](),
+										attrFieldID:    stringComputedOnly(),
+										attrVisibility: stringEnumDataSourceSchema[awstypes.Visibility](),
 									},
 								},
 							},
@@ -828,7 +828,7 @@ var dataLabelOptionsDataSourceSchema = sync.OnceValue(func() *schema.Schema {
 								Computed: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
-										"visibility": stringEnumDataSourceSchema[awstypes.Visibility](),
+										attrVisibility: stringEnumDataSourceSchema[awstypes.Visibility](),
 									},
 								},
 							},
@@ -837,7 +837,7 @@ var dataLabelOptionsDataSourceSchema = sync.OnceValue(func() *schema.Schema {
 								Computed: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
-										"visibility": stringEnumDataSourceSchema[awstypes.Visibility](),
+										attrVisibility: stringEnumDataSourceSchema[awstypes.Visibility](),
 									},
 								},
 							},
@@ -846,7 +846,7 @@ var dataLabelOptionsDataSourceSchema = sync.OnceValue(func() *schema.Schema {
 								Computed: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
-										"visibility": stringEnumDataSourceSchema[awstypes.Visibility](),
+										attrVisibility: stringEnumDataSourceSchema[awstypes.Visibility](),
 									},
 								},
 							},
@@ -859,7 +859,7 @@ var dataLabelOptionsDataSourceSchema = sync.OnceValue(func() *schema.Schema {
 				"measure_label_visibility": stringEnumDataSourceSchema[awstypes.Visibility](),
 				"overlap":                  stringEnumDataSourceSchema[awstypes.DataLabelOverlap](),
 				"position":                 stringEnumDataSourceSchema[awstypes.DataLabelPosition](),
-				"visibility":               stringEnumDataSourceSchema[awstypes.Visibility](),
+				attrVisibility:             stringEnumDataSourceSchema[awstypes.Visibility](),
 			},
 		},
 	}
@@ -1374,7 +1374,7 @@ func expandDataPathColor(tfMap map[string]any) *awstypes.DataPathColor {
 
 	apiObject := &awstypes.DataPathColor{}
 
-	if v, ok := tfMap["color"].(string); ok && v != "" {
+	if v, ok := tfMap[attrColor].(string); ok && v != "" {
 		apiObject.Color = aws.String(v)
 	}
 	if v, ok := tfMap["time_granularity"].(string); ok && v != "" {
@@ -1707,7 +1707,7 @@ func expandDataColor(tfList []any) *awstypes.DataColor {
 func expandDataColorInternal(tfMap map[string]any) *awstypes.DataColor {
 	apiObject := &awstypes.DataColor{}
 
-	if v, ok := tfMap["color"].(string); ok && v != "" {
+	if v, ok := tfMap[attrColor].(string); ok && v != "" {
 		apiObject.Color = aws.String(v)
 	}
 	if v, ok := tfMap["data_value"].(float64); ok {
@@ -2096,7 +2096,7 @@ func flattenDataPathColor(apiObjects []awstypes.DataPathColor) []any {
 		tfMap := map[string]any{}
 
 		if apiObject.Color != nil {
-			tfMap["color"] = aws.ToString(apiObject.Color)
+			tfMap[attrColor] = aws.ToString(apiObject.Color)
 		}
 		if apiObject.Element != nil {
 			tfMap["element"] = flattenDataPathValue(apiObject.Element)
@@ -2401,7 +2401,7 @@ func flattenDataColor(apiObject *awstypes.DataColor) []any {
 	tfMap := map[string]any{}
 
 	if apiObject.Color != nil {
-		tfMap["color"] = aws.ToString(apiObject.Color)
+		tfMap[attrColor] = aws.ToString(apiObject.Color)
 	}
 	if apiObject.DataValue != nil {
 		tfMap["data_value"] = aws.ToFloat64(apiObject.DataValue)
@@ -2421,7 +2421,7 @@ func flattenDataColors(apiObject []awstypes.DataColor) []any {
 		tfMap := map[string]any{}
 
 		if apiObject.Color != nil {
-			tfMap["color"] = aws.ToString(apiObject.Color)
+			tfMap[attrColor] = aws.ToString(apiObject.Color)
 		}
 		if apiObject.DataValue != nil {
 			tfMap["data_value"] = aws.ToFloat64(apiObject.DataValue)

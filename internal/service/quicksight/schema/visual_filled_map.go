@@ -52,7 +52,7 @@ func filledMapVisualSchema() *schema.Schema {
 							},
 							"legend":            legendOptionsSchema(),             // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_LegendOptions.html
 							"map_style_options": geospatialMapStyleOptionsSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_GeospatialMapStyleOptions.html
-							"sort_configuration": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_FilledMapSortConfiguration.html
+							attrSortConfiguration: { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_FilledMapSortConfiguration.html
 								Type:             schema.TypeList,
 								Optional:         true,
 								MinItems:         1,
@@ -69,7 +69,7 @@ func filledMapVisualSchema() *schema.Schema {
 						},
 					},
 				},
-				"column_hierarchies": columnHierarchiesSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnHierarchy.html
+				attrColumnHierarchies: columnHierarchiesSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnHierarchy.html
 				"conditional_formatting": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_FilledMapConditionalFormatting.html
 					Type:     schema.TypeList,
 					Optional: true,
@@ -152,7 +152,7 @@ func filledMapVisualDataSourceSchema() *schema.Schema {
 							},
 							"legend":            legendOptionsDataSourceSchema(),
 							"map_style_options": geospatialMapStyleOptionsDataSourceSchema(),
-							"sort_configuration": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_FilledMapSortConfiguration.html
+							attrSortConfiguration: { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_FilledMapSortConfiguration.html
 								Type:     schema.TypeList,
 								Computed: true,
 								Elem: &schema.Resource{
@@ -166,7 +166,7 @@ func filledMapVisualDataSourceSchema() *schema.Schema {
 						},
 					},
 				},
-				"column_hierarchies": columnHierarchiesDataSourceSchema(),
+				attrColumnHierarchies: columnHierarchiesDataSourceSchema(),
 				"conditional_formatting": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_FilledMapConditionalFormatting.html
 					Type:     schema.TypeList,
 					Computed: true,
@@ -202,7 +202,7 @@ func filledMapVisualDataSourceSchema() *schema.Schema {
 					},
 				},
 				attrSubtitle: visualSubtitleLabelOptionsDataSourceSchema(),
-				"title":      visualTitleLabelOptionsDataSourceSchema(),
+				attrTitle:    visualTitleLabelOptionsDataSourceSchema(),
 			},
 		},
 	}
@@ -232,7 +232,7 @@ func expandFilledMapVisual(tfList []any) *awstypes.FilledMapVisual {
 	if v, ok := tfMap["conditional_formatting"].([]any); ok && len(v) > 0 {
 		apiObject.ConditionalFormatting = expandFilledMapConditionalFormatting(v)
 	}
-	if v, ok := tfMap["column_hierarchies"].([]any); ok && len(v) > 0 {
+	if v, ok := tfMap[attrColumnHierarchies].([]any); ok && len(v) > 0 {
 		apiObject.ColumnHierarchies = expandColumnHierarchies(v)
 	}
 	if v, ok := tfMap["subtitle"].([]any); ok && len(v) > 0 {
@@ -266,7 +266,7 @@ func expandFilledMapConfiguration(tfList []any) *awstypes.FilledMapConfiguration
 	if v, ok := tfMap["map_style_options"].([]any); ok && len(v) > 0 {
 		apiObject.MapStyleOptions = expandGeospatialMapStyleOptions(v)
 	}
-	if v, ok := tfMap["sort_configuration"].([]any); ok && len(v) > 0 {
+	if v, ok := tfMap[attrSortConfiguration].([]any); ok && len(v) > 0 {
 		apiObject.SortConfiguration = expandFilledMapSortConfiguration(v)
 	}
 	if v, ok := tfMap["tooltip"].([]any); ok && len(v) > 0 {
@@ -453,7 +453,7 @@ func flattenFilledMapVisual(apiObject *awstypes.FilledMapVisual) []any {
 		tfMap["chart_configuration"] = flattenFilledMapConfiguration(apiObject.ChartConfiguration)
 	}
 	if apiObject.ColumnHierarchies != nil {
-		tfMap["column_hierarchies"] = flattenColumnHierarchy(apiObject.ColumnHierarchies)
+		tfMap[attrColumnHierarchies] = flattenColumnHierarchy(apiObject.ColumnHierarchies)
 	}
 	if apiObject.ConditionalFormatting != nil {
 		tfMap["conditional_formatting"] = flattenFilledMapConditionalFormatting(apiObject.ConditionalFormatting)
@@ -485,7 +485,7 @@ func flattenFilledMapConfiguration(apiObject *awstypes.FilledMapConfiguration) [
 		tfMap["map_style_options"] = flattenGeospatialMapStyleOptions(apiObject.MapStyleOptions)
 	}
 	if apiObject.SortConfiguration != nil {
-		tfMap["sort_configuration"] = flattenFilledMapSortConfiguration(apiObject.SortConfiguration)
+		tfMap[attrSortConfiguration] = flattenFilledMapSortConfiguration(apiObject.SortConfiguration)
 	}
 	if apiObject.Tooltip != nil {
 		tfMap["tooltip"] = flattenTooltipOptions(apiObject.Tooltip)
