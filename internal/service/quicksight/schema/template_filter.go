@@ -63,7 +63,7 @@ func categoryFilterSchema() *schema.Schema {
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"column": columnSchema(true), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+				attrColumn: columnSchema(true), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
 				names.AttrConfiguration: { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_CategoryFilterConfiguration.html
 					Type:     schema.TypeList,
 					Required: true,
@@ -153,7 +153,7 @@ func categoryFilterDataSourceSchema() *schema.Schema {
 		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"column": columnDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+				attrColumn: columnDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
 				names.AttrConfiguration: { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_CategoryFilterConfiguration.html
 					Type:     schema.TypeList,
 					Computed: true,
@@ -224,7 +224,7 @@ func numericEqualityFilterSchema() *schema.Schema {
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"column":               columnSchema(true), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+				attrColumn:             columnSchema(true), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
 				"filter_id":            idSchema(),
 				"match_operator":       stringEnumSchema[awstypes.CategoryFilterMatchOperator](attrRequired),
 				"null_option":          stringEnumSchema[awstypes.FilterNullOption](attrRequired),
@@ -246,7 +246,7 @@ func numericEqualityFilterDataSourceSchema() *schema.Schema {
 		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"column":               columnDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+				attrColumn:             columnDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
 				"filter_id":            idDataSourceSchema(),
 				"match_operator":       stringEnumDataSourceSchema[awstypes.CategoryFilterMatchOperator](),
 				"null_option":          stringEnumDataSourceSchema[awstypes.FilterNullOption](),
@@ -267,7 +267,7 @@ func numericRangeFilterSchema() *schema.Schema {
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"column":               columnSchema(true), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+				attrColumn:             columnSchema(true), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
 				"filter_id":            idSchema(),
 				"null_option":          stringEnumSchema[awstypes.FilterNullOption](attrRequired),
 				"aggregation_function": aggregationFunctionSchema(false), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_AggregationFunction.html
@@ -293,7 +293,7 @@ func numericRangeFilterDataSourceSchema() *schema.Schema {
 		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"column":               columnDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+				attrColumn:             columnDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
 				"filter_id":            idDataSourceSchema(),
 				"null_option":          stringEnumDataSourceSchema[awstypes.FilterNullOption](),
 				"aggregation_function": aggregationFunctionDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_AggregationFunction.html
@@ -327,7 +327,7 @@ func relativeDatesFilterSchema() *schema.Schema {
 						},
 					},
 				},
-				"column":                       columnSchema(true), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+				attrColumn:                     columnSchema(true), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
 				"filter_id":                    idSchema(),
 				"null_option":                  stringEnumSchema[awstypes.FilterNullOption](attrRequired),
 				"relative_date_type":           stringEnumSchema[awstypes.RelativeDateType](attrRequired),
@@ -360,7 +360,7 @@ func relativeDatesFilterDataSourceSchema() *schema.Schema {
 						},
 					},
 				},
-				"column":                       columnDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+				attrColumn:                     columnDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
 				"filter_id":                    idDataSourceSchema(),
 				"null_option":                  stringEnumDataSourceSchema[awstypes.FilterNullOption](),
 				"relative_date_type":           stringEnumDataSourceSchema[awstypes.RelativeDateType](),
@@ -382,7 +382,7 @@ func timeEqualityFilterSchema() *schema.Schema {
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"column":           columnSchema(true), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+				attrColumn:         columnSchema(true), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
 				"filter_id":        idSchema(),
 				"time_granularity": stringEnumSchema[awstypes.TimeGranularity](attrRequired),
 				"parameter_name":   parameterNameSchema(false),
@@ -402,7 +402,7 @@ func timeEqualityFilterDataSourceSchema() *schema.Schema {
 		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"column":           columnDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+				attrColumn:         columnDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
 				"filter_id":        idDataSourceSchema(),
 				"time_granularity": stringEnumDataSourceSchema[awstypes.TimeGranularity](),
 				"parameter_name":   parameterNameDataSourceSchema(),
@@ -420,7 +420,7 @@ func timeRangeFilterSchema() *schema.Schema {
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"column":                       columnSchema(true), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+				attrColumn:                     columnSchema(true), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
 				"filter_id":                    idSchema(),
 				"null_option":                  stringEnumSchema[awstypes.FilterNullOption](attrRequired),
 				"exclude_period_configuration": excludePeriodConfigurationSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ExcludePeriodConfiguration.html
@@ -446,7 +446,7 @@ func timeRangeFilterDataSourceSchema() *schema.Schema {
 		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"column":                       columnDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+				attrColumn:                     columnDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
 				"filter_id":                    idDataSourceSchema(),
 				"null_option":                  stringEnumDataSourceSchema[awstypes.FilterNullOption](),
 				"exclude_period_configuration": excludePeriodConfigurationDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ExcludePeriodConfiguration.html
@@ -476,12 +476,12 @@ func topBottomFilterSchema() *schema.Schema {
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"aggregation_function": aggregationFunctionSchema(true), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_AggregationFunction.html
-							"column":               columnSchema(true),              // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+							attrColumn:             columnSchema(true),              // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
 							"sort_direction":       stringEnumSchema[awstypes.SortDirection](attrRequired),
 						},
 					},
 				},
-				"column":    columnSchema(true), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+				attrColumn:  columnSchema(true), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
 				"filter_id": idSchema(),
 				"limit": {
 					Type:     schema.TypeInt,
@@ -506,12 +506,12 @@ func topBottomFilterDataSourceSchema() *schema.Schema {
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"aggregation_function": aggregationFunctionDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_AggregationFunction.html
-							"column":               columnDataSourceSchema(),              // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+							attrColumn:             columnDataSourceSchema(),              // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
 							"sort_direction":       stringEnumDataSourceSchema[awstypes.SortDirection](),
 						},
 					},
 				},
-				"column":           columnDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+				attrColumn:         columnDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
 				"filter_id":        idDataSourceSchema(),
 				"limit":            intComputedOnly(),
 				"parameter_name":   parameterNameDataSourceSchema(),
@@ -654,7 +654,7 @@ var drillDownFilterSchema = sync.OnceValue(func() *schema.Schema {
 									ValidateFunc: validation.StringLenBetween(1, 512),
 								},
 							},
-							"column": columnSchema(true), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+							attrColumn: columnSchema(true), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
 						},
 					},
 				},
@@ -665,7 +665,7 @@ var drillDownFilterSchema = sync.OnceValue(func() *schema.Schema {
 					MaxItems: 1,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"column": columnSchema(true), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+							attrColumn: columnSchema(true), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
 							names.AttrValue: {
 								Type:     schema.TypeFloat,
 								Required: true,
@@ -680,7 +680,7 @@ var drillDownFilterSchema = sync.OnceValue(func() *schema.Schema {
 					MaxItems: 1,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"column":           columnSchema(true), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+							attrColumn:         columnSchema(true), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
 							"range_maximum":    utcTimestampStringSchema(attrRequired),
 							"range_minimum":    utcTimestampStringSchema(attrRequired),
 							"time_granularity": stringEnumSchema[awstypes.TimeGranularity](attrRequired),
@@ -708,7 +708,7 @@ var drillDownFilterDataSourceSchema = sync.OnceValue(func() *schema.Schema {
 								Computed: true,
 								Elem:     &schema.Schema{Type: schema.TypeString},
 							},
-							"column": columnDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+							attrColumn: columnDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
 						},
 					},
 				},
@@ -717,7 +717,7 @@ var drillDownFilterDataSourceSchema = sync.OnceValue(func() *schema.Schema {
 					Computed: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"column":        columnDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+							attrColumn:      columnDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
 							names.AttrValue: floatComputedOnly(),
 						},
 					},
@@ -727,7 +727,7 @@ var drillDownFilterDataSourceSchema = sync.OnceValue(func() *schema.Schema {
 					Computed: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"column":           columnDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+							attrColumn:         columnDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
 							"range_maximum":    stringComputedOnly(),
 							"range_minimum":    stringComputedOnly(),
 							"time_granularity": stringEnumDataSourceSchema[awstypes.TimeGranularity](),
