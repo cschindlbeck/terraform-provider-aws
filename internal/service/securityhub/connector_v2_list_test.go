@@ -127,7 +127,7 @@ func testAccConnectorV2_List_includeResource(t *testing.T) {
 						tfquerycheck.KnownValueCheck(tfjsonpath.New(names.AttrRegion), knownvalue.StringExact(acctest.Region())),
 						tfquerycheck.KnownValueCheck(tfjsonpath.New("connector_id"), knownvalue.NotNull()),
 						tfquerycheck.KnownValueCheck(tfjsonpath.New("health"), knownvalue.ListSizeExact(1)),
-						tfquerycheck.KnownValueCheck(tfjsonpath.New(names.AttrName), knownvalue.StringExact(rName)),
+						tfquerycheck.KnownValueCheck(tfjsonpath.New(names.AttrName), knownvalue.StringExact(rName+"-0")),
 						tfquerycheck.KnownValueCheck(tfjsonpath.New(names.AttrTags), knownvalue.MapExact(map[string]knownvalue.Check{
 							acctest.CtKey1: knownvalue.StringExact(acctest.CtValue1),
 						})),

@@ -9,7 +9,7 @@ resource "aws_securityhub_connector_v2" "test" {
 
   connector_provider {
     jira_cloud {
-      project_key = "TEST-${count.index}"
+      project_key = "TEST${count.index}"
     }
   }
 
