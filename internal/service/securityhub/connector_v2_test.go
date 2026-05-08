@@ -140,6 +140,40 @@ func testAccConnectorV2_description(t *testing.T) {
 	})
 }
 
+func testAccConnectorV2_kmsKeyARN(t *testing.T) {
+	ctx := acctest.Context(t)
+	var connector securityhub.GetConnectorV2Output
+	resourceName := "aws_securityhub_connector_v2.test"
+	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
+
+	acctest.Test(ctx, t, resource.TestCase{
+		PreCheck:                 func() { acctest.PreCheck(ctx, t) },
+		ErrorCheck:               acctest.ErrorCheck(t, names.SecurityHubServiceID),
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckConnectorV2Destroy(ctx, t),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConnectorV2Config_kmsKeyARN(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckConnectorV2Exists(ctx, t, resourceName, &connector),
+				),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionCreate),
+					},
+				},
+			},
+			{
+				ImportStateIdFunc:                    acctest.AttrImportStateIdFunc(resourceName, "connector_id"),
+				ResourceName:                         resourceName,
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+				ImportStateVerifyIdentifierAttribute: "connector_id",
+			},
+		},
+	})
+}
+
 func testAccConnectorV2_tags(t *testing.T) {
 	ctx := acctest.Context(t)
 	var connector securityhub.GetConnectorV2Output
@@ -346,4 +380,26 @@ resource "aws_securityhub_connector_v2" "test" {
 `, rName, tagKey1, tagValue1, tagKey2, tagValue2))
 }
 
-// TODO: kms_key_arn, provider update, ServiceNow.
+func testAccConnectorV2Config_kmsKeyARN(rName string) string {
+	return acctest.ConfigCompose(testAccConnectorV2Config_base(), fmt.Sprintf(`
+resource "aws_securityhub_connector_v2" "test" {
+  name        = %[1]q
+  kms_key_arn = aws_kms_key.test.arn
+
+  connector_provider {
+    jira_cloud {
+      project_key = "TEST"
+    }
+  }
+
+  depends_on = [aws_securityhub_aggregator_v2.test]
+}
+
+resource "aws_kms_key" "test" {
+  description             = %[1]q
+  deletion_window_in_days = 7
+}
+`, rName))
+}
+
+// TODO: provider update, ServiceNow.

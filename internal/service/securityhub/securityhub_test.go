@@ -68,6 +68,7 @@ func TestAccSecurityHub_serial(t *testing.T) {
 			acctest.CtDisappears: testAccConnectorV2_disappears,
 			"description":        testAccConnectorV2_description,
 			"tags":               testAccConnectorV2_tags,
+			"KMSKeyARN":          testAccConnectorV2_kmsKeyARN,
 			"Identity":           testAccSecurityHubConnectorV2_identitySerial,
 		},
 		"EnabledStandards": {
