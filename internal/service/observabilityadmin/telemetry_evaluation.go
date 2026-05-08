@@ -50,11 +50,11 @@ type telemetryEvaluationResource struct {
 func (r *telemetryEvaluationResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			names.AttrID: framework.IDAttributeDeprecatedWithAlternate(path.Root(names.AttrRegion)),
-			names.AttrStatus: schema.StringAttribute{
+			"failure_reason": schema.StringAttribute{
 				Computed: true,
 			},
-			"failure_reason": schema.StringAttribute{
+			names.AttrID: framework.IDAttributeDeprecatedWithAlternate(path.Root(names.AttrRegion)),
+			names.AttrStatus: schema.StringAttribute{
 				Computed: true,
 			},
 		},
@@ -77,7 +77,12 @@ func (r *telemetryEvaluationResource) Create(ctx context.Context, req resource.C
 	conn := r.Meta().ObservabilityAdminClient(ctx)
 
 	var input observabilityadmin.StartTelemetryEvaluationInput
-	_, err := conn.StartTelemetryEvaluation(ctx, &input)
+	const (
+		timeout = 1 * time.Minute
+	)
+	_, err := tfresource.RetryWhenIsA[any, *awstypes.ConflictException](ctx, timeout, func(ctx context.Context) (any, error) {
+		return conn.StartTelemetryEvaluation(ctx, &input)
+	})
 	if err != nil {
 		smerr.AddError(ctx, &resp.Diagnostics, err)
 		return
@@ -89,9 +94,9 @@ func (r *telemetryEvaluationResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	data.Status = fwflex.StringToFramework(ctx, (*string)(&out.Status))
 	data.FailureReason = fwflex.StringToFramework(ctx, out.FailureReason)
 	data.ID = fwflex.StringValueToFramework(ctx, r.Meta().Region(ctx))
+	data.Status = fwflex.StringValueToFramework(ctx, out.Status)
 
 	smerr.AddEnrich(ctx, &resp.Diagnostics, resp.State.Set(ctx, data))
 }
@@ -116,8 +121,8 @@ func (r *telemetryEvaluationResource) Read(ctx context.Context, req resource.Rea
 		return
 	}
 
-	data.Status = fwflex.StringToFramework(ctx, (*string)(&out.Status))
 	data.FailureReason = fwflex.StringToFramework(ctx, out.FailureReason)
+	data.Status = fwflex.StringValueToFramework(ctx, out.Status)
 
 	smerr.AddEnrich(ctx, &resp.Diagnostics, resp.State.Set(ctx, &data))
 }
@@ -238,8 +243,8 @@ func waitTelemetryEvaluationStopped(ctx context.Context, conn *observabilityadmi
 
 type telemetryEvaluationResourceModel struct {
 	framework.WithRegionModel
+	FailureReason types.String   `tfsdk:"failure_reason"`
 	ID            types.String   `tfsdk:"id"`
 	Status        types.String   `tfsdk:"status"`
-	FailureReason types.String   `tfsdk:"failure_reason"`
 	Timeouts      timeouts.Value `tfsdk:"timeouts"`
 }

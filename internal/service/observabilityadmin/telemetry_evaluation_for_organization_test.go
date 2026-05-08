@@ -24,23 +24,24 @@ import (
 	"github.com/hashicorp/terraform-provider-aws/names"
 )
 
-func testAccTelemetryEvaluation_basic(t *testing.T) {
+func testAccTelemetryEvaluationForOrganization_basic(t *testing.T) {
 	ctx := acctest.Context(t)
-	resourceName := "aws_observabilityadmin_telemetry_evaluation.test"
+	resourceName := "aws_observabilityadmin_telemetry_evaluation_for_organization.test"
 
 	acctest.Test(ctx, t, resource.TestCase{
 		PreCheck: func() {
 			acctest.PreCheck(ctx, t)
-			testAccTelemetryEvaluationPreCheck(ctx, t)
+			acctest.PreCheckOrganizationManagementAccount(ctx, t)
+			testAccTelemetryEvaluationForOrganizationPreCheck(ctx, t)
 		},
 		ErrorCheck:               acctest.ErrorCheck(t, names.ObservabilityAdminServiceID),
 		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
-		CheckDestroy:             testAccCheckTelemetryEvaluationDestroy(ctx, t),
+		CheckDestroy:             testAccCheckTelemetryEvaluationForOrganizationDestroy(ctx, t),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccTelemetryEvaluationConfig_basic(),
+				Config: testAccTelemetryEvaluationForOrganizationConfig_basic(),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckTelemetryEvaluationExists(ctx, t, resourceName),
+					testAccCheckTelemetryEvaluationForOrganizationExists(ctx, t, resourceName),
 				),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
@@ -55,24 +56,25 @@ func testAccTelemetryEvaluation_basic(t *testing.T) {
 	})
 }
 
-func testAccTelemetryEvaluation_disappears(t *testing.T) {
+func testAccTelemetryEvaluationForOrganization_disappears(t *testing.T) {
 	ctx := acctest.Context(t)
-	resourceName := "aws_observabilityadmin_telemetry_evaluation.test"
+	resourceName := "aws_observabilityadmin_telemetry_evaluation_for_organization.test"
 
 	acctest.Test(ctx, t, resource.TestCase{
 		PreCheck: func() {
 			acctest.PreCheck(ctx, t)
-			testAccTelemetryEvaluationPreCheck(ctx, t)
+			acctest.PreCheckOrganizationManagementAccount(ctx, t)
+			testAccTelemetryEvaluationForOrganizationPreCheck(ctx, t)
 		},
 		ErrorCheck:               acctest.ErrorCheck(t, names.ObservabilityAdminServiceID),
 		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
-		CheckDestroy:             testAccCheckTelemetryEvaluationDestroy(ctx, t),
+		CheckDestroy:             testAccCheckTelemetryEvaluationForOrganizationDestroy(ctx, t),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccTelemetryEvaluationConfig_basic(),
+				Config: testAccTelemetryEvaluationForOrganizationConfig_basic(),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckTelemetryEvaluationExists(ctx, t, resourceName),
-					acctest.CheckFrameworkResourceDisappears(ctx, t, tfobservabilityadmin.ResourceTelemetryEvaluation, resourceName),
+					testAccCheckTelemetryEvaluationForOrganizationExists(ctx, t, resourceName),
+					acctest.CheckFrameworkResourceDisappears(ctx, t, tfobservabilityadmin.ResourceTelemetryEvaluationForOrganization, resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
@@ -88,16 +90,16 @@ func testAccTelemetryEvaluation_disappears(t *testing.T) {
 	})
 }
 
-func testAccCheckTelemetryEvaluationDestroy(ctx context.Context, t *testing.T) resource.TestCheckFunc {
+func testAccCheckTelemetryEvaluationForOrganizationDestroy(ctx context.Context, t *testing.T) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := acctest.ProviderMeta(ctx, t).ObservabilityAdminClient(ctx)
 
 		for _, rs := range s.RootModule().Resources {
-			if rs.Type != "aws_observabilityadmin_telemetry_evaluation" {
+			if rs.Type != "aws_observabilityadmin_telemetry_evaluation_for_organization" {
 				continue
 			}
 
-			_, err := tfobservabilityadmin.FindTelemetryEvaluation(ctx, conn)
+			_, err := tfobservabilityadmin.FindTelemetryEvaluationForOrganization(ctx, conn)
 
 			if retry.NotFound(err) {
 				return nil
@@ -107,14 +109,14 @@ func testAccCheckTelemetryEvaluationDestroy(ctx context.Context, t *testing.T) r
 				return err
 			}
 
-			return errors.New("Observability Admin Telemetry Evaluation still exists")
+			return errors.New("Observability Admin Telemetry Evaluation For Organization still exists")
 		}
 
 		return nil
 	}
 }
 
-func testAccCheckTelemetryEvaluationExists(ctx context.Context, t *testing.T, n string) resource.TestCheckFunc {
+func testAccCheckTelemetryEvaluationForOrganizationExists(ctx context.Context, t *testing.T, n string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		_, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -123,17 +125,17 @@ func testAccCheckTelemetryEvaluationExists(ctx context.Context, t *testing.T, n 
 
 		conn := acctest.ProviderMeta(ctx, t).ObservabilityAdminClient(ctx)
 
-		_, err := tfobservabilityadmin.FindTelemetryEvaluation(ctx, conn)
+		_, err := tfobservabilityadmin.FindTelemetryEvaluationForOrganization(ctx, conn)
 
 		return err
 	}
 }
 
-func testAccTelemetryEvaluationPreCheck(ctx context.Context, t *testing.T) {
+func testAccTelemetryEvaluationForOrganizationPreCheck(ctx context.Context, t *testing.T) {
 	conn := acctest.ProviderMeta(ctx, t).ObservabilityAdminClient(ctx)
 
-	input := observabilityadmin.GetTelemetryEvaluationStatusInput{}
-	_, err := conn.GetTelemetryEvaluationStatus(ctx, &input)
+	input := observabilityadmin.GetTelemetryEvaluationStatusForOrganizationInput{}
+	_, err := conn.GetTelemetryEvaluationStatusForOrganization(ctx, &input)
 
 	if errs.IsA[*awstypes.ResourceNotFoundException](err) {
 		return
@@ -148,8 +150,8 @@ func testAccTelemetryEvaluationPreCheck(ctx context.Context, t *testing.T) {
 	}
 }
 
-func testAccTelemetryEvaluationConfig_basic() string {
+func testAccTelemetryEvaluationForOrganizationConfig_basic() string {
 	return `
-resource "aws_observabilityadmin_telemetry_evaluation" "test" {}
+resource "aws_observabilityadmin_telemetry_evaluation_for_organization" "test" {}
 `
 }
