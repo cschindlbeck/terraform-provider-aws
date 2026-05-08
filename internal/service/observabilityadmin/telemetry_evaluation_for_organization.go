@@ -10,9 +10,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/observabilityadmin"
 	awstypes "github.com/aws/aws-sdk-go-v2/service/observabilityadmin/types"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-aws/internal/enum"
 	"github.com/hashicorp/terraform-provider-aws/internal/errs"
@@ -20,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-aws/internal/framework"
 	fwflex "github.com/hashicorp/terraform-provider-aws/internal/framework/flex"
 	fwtypes "github.com/hashicorp/terraform-provider-aws/internal/framework/types"
+	fwvalidators "github.com/hashicorp/terraform-provider-aws/internal/framework/validators"
 	"github.com/hashicorp/terraform-provider-aws/internal/retry"
 	"github.com/hashicorp/terraform-provider-aws/internal/smerr"
 	"github.com/hashicorp/terraform-provider-aws/internal/tfresource"
@@ -52,22 +55,25 @@ type telemetryEvaluationForOrganizationResource struct {
 func (r *telemetryEvaluationForOrganizationResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			names.AttrID: framework.IDAttributeDeprecatedWithAlternate(path.Root(names.AttrRegion)),
 			"all_regions": schema.BoolAttribute{
 				Optional: true,
-			},
-			"regions": schema.SetAttribute{
-				CustomType:  fwtypes.SetOfStringType,
-				Optional:    true,
-				ElementType: types.StringType,
-			},
-			names.AttrStatus: schema.StringAttribute{
-				Computed: true,
 			},
 			"failure_reason": schema.StringAttribute{
 				Computed: true,
 			},
 			"home_region": schema.StringAttribute{
+				Computed: true,
+			},
+			names.AttrID: framework.IDAttributeDeprecatedWithAlternate(path.Root(names.AttrRegion)),
+			"regions": schema.SetAttribute{
+				ElementType: types.StringType,
+				CustomType:  fwtypes.SetOfStringType,
+				Optional:    true,
+				Validators: []validator.Set{
+					setvalidator.ValueStringsAre(fwvalidators.AWSRegion()),
+				},
+			},
+			names.AttrStatus: schema.StringAttribute{
 				Computed: true,
 			},
 		},
@@ -90,15 +96,9 @@ func (r *telemetryEvaluationForOrganizationResource) Create(ctx context.Context,
 	conn := r.Meta().ObservabilityAdminClient(ctx)
 
 	var input observabilityadmin.StartTelemetryEvaluationForOrganizationInput
-
-	if !data.AllRegions.IsNull() {
-		input.AllRegions = data.AllRegions.ValueBoolPointer()
-	}
-	if !data.Regions.IsNull() {
-		smerr.AddEnrich(ctx, &resp.Diagnostics, data.Regions.ElementsAs(ctx, &input.Regions, false))
-		if resp.Diagnostics.HasError() {
-			return
-		}
+	smerr.AddEnrich(ctx, &resp.Diagnostics, fwflex.Expand(ctx, data, &input))
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	_, err := conn.StartTelemetryEvaluationForOrganization(ctx, &input)
@@ -113,9 +113,11 @@ func (r *telemetryEvaluationForOrganizationResource) Create(ctx context.Context,
 		return
 	}
 
-	data.Status = fwflex.StringToFramework(ctx, (*string)(&out.Status))
-	data.FailureReason = fwflex.StringToFramework(ctx, out.FailureReason)
-	data.HomeRegion = fwflex.StringToFramework(ctx, out.HomeRegion)
+	// Set values for unknowns.
+	smerr.AddEnrich(ctx, &resp.Diagnostics, fwflex.Flatten(ctx, out, &data))
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	data.ID = fwflex.StringValueToFramework(ctx, r.Meta().Region(ctx))
 
 	smerr.AddEnrich(ctx, &resp.Diagnostics, resp.State.Set(ctx, data))
@@ -141,9 +143,11 @@ func (r *telemetryEvaluationForOrganizationResource) Read(ctx context.Context, r
 		return
 	}
 
-	data.Status = fwflex.StringToFramework(ctx, (*string)(&out.Status))
-	data.FailureReason = fwflex.StringToFramework(ctx, out.FailureReason)
-	data.HomeRegion = fwflex.StringToFramework(ctx, out.HomeRegion)
+	// Set attributes for import.
+	smerr.AddEnrich(ctx, &resp.Diagnostics, fwflex.Flatten(ctx, out, &data))
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	smerr.AddEnrich(ctx, &resp.Diagnostics, resp.State.Set(ctx, &data))
 }
