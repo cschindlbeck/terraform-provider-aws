@@ -21,7 +21,7 @@ func heatMapVisualSchema() *schema.Schema {
 			Schema: map[string]*schema.Schema{
 				attrVisualID:      idSchema(),
 				names.AttrActions: visualCustomActionsSchema(customActionsMaxItems), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualCustomAction.html
-				"chart_configuration": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_HeatMapConfiguration.html
+				attrChartConfiguration: { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_HeatMapConfiguration.html
 					Type:     schema.TypeList,
 					Optional: true,
 					MinItems: 1,
@@ -31,7 +31,7 @@ func heatMapVisualSchema() *schema.Schema {
 							"color_scale":          colorScaleSchema(),            // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColorScale.html
 							"column_label_options": chartAxisLabelOptionsSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ChartAxisLabelOptions.html
 							"data_labels":          dataLabelOptionsSchema(),      // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_DataLabelOptions.html
-							"field_wells": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_HeatMapFieldWells.html
+							attrFieldWells: { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_HeatMapFieldWells.html
 								Type:     schema.TypeList,
 								Optional: true,
 								MinItems: 1,
@@ -76,7 +76,7 @@ func heatMapVisualSchema() *schema.Schema {
 					},
 				},
 				"column_hierarchies": columnHierarchiesSchema(),          // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnHierarchy.html
-				"subtitle":           visualSubtitleLabelOptionsSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualSubtitleLabelOptions.html
+				attrSubtitle:         visualSubtitleLabelOptionsSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualSubtitleLabelOptions.html
 				attrTitle:            visualTitleLabelOptionsSchema(),    // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualTitleLabelOptions.html
 			},
 		},
@@ -91,7 +91,7 @@ func heatMapVisualDataSourceSchema() *schema.Schema {
 			Schema: map[string]*schema.Schema{
 				"visual_id":       idDataSourceSchema(),
 				names.AttrActions: visualCustomActionsDataSourceSchema(),
-				"chart_configuration": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_HeatMapConfiguration.html
+				attrChartConfiguration: { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_HeatMapConfiguration.html
 					Type:     schema.TypeList,
 					Computed: true,
 					Elem: &schema.Resource{
@@ -99,7 +99,7 @@ func heatMapVisualDataSourceSchema() *schema.Schema {
 							"color_scale":          colorScaleDataSourceSchema(),
 							"column_label_options": chartAxisLabelOptionsDataSourceSchema(),
 							"data_labels":          dataLabelOptionsDataSourceSchema(),
-							"field_wells": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_HeatMapFieldWells.html
+							attrFieldWells: { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_HeatMapFieldWells.html
 								Type:     schema.TypeList,
 								Computed: true,
 								Elem: &schema.Resource{
@@ -137,7 +137,7 @@ func heatMapVisualDataSourceSchema() *schema.Schema {
 					},
 				},
 				"column_hierarchies": columnHierarchiesDataSourceSchema(),
-				"subtitle":           visualSubtitleLabelOptionsDataSourceSchema(),
+				attrSubtitle:         visualSubtitleLabelOptionsDataSourceSchema(),
 				"title":              visualTitleLabelOptionsDataSourceSchema(),
 			},
 		},

@@ -339,8 +339,8 @@ var chartAxisLabelOptionsSchema = sync.OnceValue(func() *schema.Schema {
 								Optional: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
-										"column":   columnSchema(true), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
-										"field_id": stringLenBetweenSchema(attrRequired, 1, 512),
+										attrColumn:  columnSchema(true), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+										attrFieldID: stringLenBetweenSchema(attrRequired, 1, 512),
 									},
 								},
 							},
@@ -375,8 +375,8 @@ var chartAxisLabelOptionsDataSourceSchema = sync.OnceValue(func() *schema.Schema
 								Computed: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
-										"column":   columnDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
-										"field_id": stringComputedOnly(),
+										attrColumn:  columnDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+										attrFieldID: stringComputedOnly(),
 									},
 								},
 							},
@@ -495,7 +495,7 @@ var referenceLineSchema = sync.OnceValue(func() *schema.Schema {
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
 										"calculation":                  numericalAggregationFunctionSchema(true), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_NumericalAggregationFunction.html
-										"column":                       columnSchema(true),                       // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+										attrColumn:                     columnSchema(true),                       // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
 										"measure_aggregation_function": aggregationFunctionSchema(true),          // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_AggregationFunction.html
 									},
 								},
@@ -590,7 +590,7 @@ var referenceLineDataSourceSchema = sync.OnceValue(func() *schema.Schema {
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
 										"calculation":                  numericalAggregationFunctionDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_NumericalAggregationFunction.html
-										"column":                       columnDataSourceSchema(),                       // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+										attrColumn:                     columnDataSourceSchema(),                       // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
 										"measure_aggregation_function": aggregationFunctionDataSourceSchema(),          // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_AggregationFunction.html
 									},
 								},

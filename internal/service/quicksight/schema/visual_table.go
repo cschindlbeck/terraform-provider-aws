@@ -23,7 +23,7 @@ func tableVisualSchema() *schema.Schema {
 			Schema: map[string]*schema.Schema{
 				attrVisualID:      idSchema(),
 				names.AttrActions: visualCustomActionsSchema(customActionsMaxItems), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualCustomAction.html
-				"chart_configuration": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_TableConfiguration.html
+				attrChartConfiguration: { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_TableConfiguration.html
 					Type:     schema.TypeList,
 					Optional: true,
 					MinItems: 1,
@@ -51,7 +51,7 @@ func tableVisualSchema() *schema.Schema {
 											MaxItems: 100,
 											Elem: &schema.Resource{
 												Schema: map[string]*schema.Schema{
-													"field_id":     stringLenBetweenSchema(attrRequired, 1, 512),
+													attrFieldID:    stringLenBetweenSchema(attrRequired, 1, 512),
 													"custom_label": stringLenBetweenSchema(attrOptional, 1, 2048),
 													"url_styling": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_TableFieldURLConfiguration.html
 														Type:     schema.TypeList,
@@ -142,7 +142,7 @@ func tableVisualSchema() *schema.Schema {
 									},
 								},
 							},
-							"field_wells": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_TableFieldWells.html
+							attrFieldWells: { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_TableFieldWells.html
 								Type:     schema.TypeList,
 								Optional: true,
 								MinItems: 1,
@@ -175,8 +175,8 @@ func tableVisualSchema() *schema.Schema {
 														MaxItems: 200,
 														Elem: &schema.Resource{
 															Schema: map[string]*schema.Schema{
-																"column":               columnSchema(true), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
-																"field_id":             stringLenBetweenSchema(attrRequired, 1, 512),
+																attrColumn:             columnSchema(true), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+																attrFieldID:            stringLenBetweenSchema(attrRequired, 1, 512),
 																"format_configuration": formatConfigurationSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_FormatConfiguration.html
 															},
 														},
@@ -240,7 +240,7 @@ func tableVisualSchema() *schema.Schema {
 											MaxItems: 1,
 											Elem: &schema.Resource{
 												Schema: map[string]*schema.Schema{
-													"field_id":       stringLenBetweenSchema(attrRequired, 1, 512),
+													attrFieldID:      stringLenBetweenSchema(attrRequired, 1, 512),
 													"negative_color": hexColorSchema(attrOptional),
 													"positive_color": hexColorSchema(attrOptional),
 												},
@@ -305,7 +305,7 @@ func tableVisualSchema() *schema.Schema {
 											MaxItems: 1,
 											Elem: &schema.Resource{
 												Schema: map[string]*schema.Schema{
-													"field_id":    stringLenBetweenSchema(attrRequired, 1, 512),
+													attrFieldID:   stringLenBetweenSchema(attrRequired, 1, 512),
 													"text_format": textConditionalFormatSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_TextConditionalFormat.html
 												},
 											},
@@ -328,8 +328,8 @@ func tableVisualSchema() *schema.Schema {
 						},
 					},
 				},
-				"subtitle": visualSubtitleLabelOptionsSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualSubtitleLabelOptions.html
-				attrTitle:  visualTitleLabelOptionsSchema(),    // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualTitleLabelOptions.html
+				attrSubtitle: visualSubtitleLabelOptionsSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualSubtitleLabelOptions.html
+				attrTitle:    visualTitleLabelOptionsSchema(),    // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualTitleLabelOptions.html
 			},
 		},
 	}
@@ -343,7 +343,7 @@ func tableVisualDataSourceSchema() *schema.Schema {
 			Schema: map[string]*schema.Schema{
 				"visual_id":       idDataSourceSchema(),
 				names.AttrActions: visualCustomActionsDataSourceSchema(),
-				"chart_configuration": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_TableConfiguration.html
+				attrChartConfiguration: { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_TableConfiguration.html
 					Type:     schema.TypeList,
 					Computed: true,
 					Elem: &schema.Resource{
@@ -363,7 +363,7 @@ func tableVisualDataSourceSchema() *schema.Schema {
 											Computed: true,
 											Elem: &schema.Resource{
 												Schema: map[string]*schema.Schema{
-													"field_id":     stringComputedOnly(),
+													attrFieldID:    stringComputedOnly(),
 													"custom_label": stringComputedOnly(),
 													"url_styling": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_TableFieldURLConfiguration.html
 														Type:     schema.TypeList,
@@ -434,7 +434,7 @@ func tableVisualDataSourceSchema() *schema.Schema {
 									},
 								},
 							},
-							"field_wells": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_TableFieldWells.html
+							attrFieldWells: { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_TableFieldWells.html
 								Type:     schema.TypeList,
 								Computed: true,
 								Elem: &schema.Resource{
@@ -459,8 +459,8 @@ func tableVisualDataSourceSchema() *schema.Schema {
 														Computed: true,
 														Elem: &schema.Resource{
 															Schema: map[string]*schema.Schema{
-																"column":               columnDataSourceSchema(),
-																"field_id":             stringComputedOnly(),
+																attrColumn:             columnDataSourceSchema(),
+																attrFieldID:            stringComputedOnly(),
 																"format_configuration": formatConfigurationDataSourceSchema(),
 															},
 														},
@@ -510,7 +510,7 @@ func tableVisualDataSourceSchema() *schema.Schema {
 											Computed: true,
 											Elem: &schema.Resource{
 												Schema: map[string]*schema.Schema{
-													"field_id":       stringComputedOnly(),
+													attrFieldID:      stringComputedOnly(),
 													"negative_color": stringComputedOnly(),
 													"positive_color": stringComputedOnly(),
 												},
@@ -562,7 +562,7 @@ func tableVisualDataSourceSchema() *schema.Schema {
 											Computed: true,
 											Elem: &schema.Resource{
 												Schema: map[string]*schema.Schema{
-													"field_id":    stringComputedOnly(),
+													attrFieldID:   stringComputedOnly(),
 													"text_format": textConditionalFormatDataSourceSchema(),
 												},
 											},
@@ -583,8 +583,8 @@ func tableVisualDataSourceSchema() *schema.Schema {
 						},
 					},
 				},
-				"subtitle": visualSubtitleLabelOptionsDataSourceSchema(),
-				"title":    visualTitleLabelOptionsDataSourceSchema(),
+				attrSubtitle: visualSubtitleLabelOptionsDataSourceSchema(),
+				"title":      visualTitleLabelOptionsDataSourceSchema(),
 			},
 		},
 	}
