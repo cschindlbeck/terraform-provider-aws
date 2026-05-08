@@ -7,9 +7,11 @@ package observabilityadmin
 var (
 	ResourceCentralizationRuleForOrganization = newCentralizationRuleForOrganizationResource
 	ResourceTelemetryEnrichment               = newTelemetryEnrichmentResource
+	ResourceTelemetryEvaluation               = newTelemetryEvaluationResource
 	ResourceTelemetryPipeline                 = newTelemetryPipelineResource
 
 	FindCentralizationRuleForOrganizationByID = findCentralizationRuleForOrganizationByID
 	FindTelemetryEnrichment                   = findTelemetryEnrichment
+	FindTelemetryEvaluation                   = findTelemetryEvaluation
 	FindTelemetryPipelineByARN                = findTelemetryPipelineByARN
 )
