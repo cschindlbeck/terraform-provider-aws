@@ -21,14 +21,14 @@ func kpiVisualSchema() *schema.Schema {
 			Schema: map[string]*schema.Schema{
 				attrVisualID:      idSchema(),
 				names.AttrActions: visualCustomActionsSchema(customActionsMaxItems), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualCustomAction.html
-				"chart_configuration": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_KPIConfiguration.html
+				attrChartConfiguration: { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_KPIConfiguration.html
 					Type:     schema.TypeList,
 					Optional: true,
 					MinItems: 1,
 					MaxItems: 1,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"field_wells": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_KPIFieldWells.html
+							attrFieldWells: { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_KPIFieldWells.html
 								Type:     schema.TypeList,
 								Optional: true,
 								MinItems: 1,
@@ -206,8 +206,8 @@ func kpiVisualSchema() *schema.Schema {
 						},
 					},
 				},
-				"subtitle": visualSubtitleLabelOptionsSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualSubtitleLabelOptions.html
-				attrTitle:  visualTitleLabelOptionsSchema(),    // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualTitleLabelOptions.html
+				attrSubtitle: visualSubtitleLabelOptionsSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualSubtitleLabelOptions.html
+				attrTitle:    visualTitleLabelOptionsSchema(),    // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualTitleLabelOptions.html
 			},
 		},
 	}
@@ -221,12 +221,12 @@ func kpiVisualDataSourceSchema() *schema.Schema {
 			Schema: map[string]*schema.Schema{
 				"visual_id":       idDataSourceSchema(),
 				names.AttrActions: visualCustomActionsDataSourceSchema(),
-				"chart_configuration": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_KPIConfiguration.html
+				attrChartConfiguration: { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_KPIConfiguration.html
 					Type:     schema.TypeList,
 					Computed: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"field_wells": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_KPIFieldWells.html
+							attrFieldWells: { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_KPIFieldWells.html
 								Type:     schema.TypeList,
 								Computed: true,
 								Elem: &schema.Resource{
@@ -373,8 +373,8 @@ func kpiVisualDataSourceSchema() *schema.Schema {
 						},
 					},
 				},
-				"subtitle": visualSubtitleLabelOptionsDataSourceSchema(),
-				"title":    visualTitleLabelOptionsDataSourceSchema(),
+				attrSubtitle: visualSubtitleLabelOptionsDataSourceSchema(),
+				"title":      visualTitleLabelOptionsDataSourceSchema(),
 			},
 		},
 	}

@@ -243,8 +243,8 @@ func insightVisualSchema() *schema.Schema {
 						},
 					},
 				},
-				"subtitle": visualSubtitleLabelOptionsSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualSubtitleLabelOptions.html
-				attrTitle:  visualTitleLabelOptionsSchema(),    // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualTitleLabelOptions.html
+				attrSubtitle: visualSubtitleLabelOptionsSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualSubtitleLabelOptions.html
+				attrTitle:    visualTitleLabelOptionsSchema(),    // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualTitleLabelOptions.html
 			},
 		},
 	}
@@ -419,8 +419,8 @@ func insightVisualDataSourceSchema() *schema.Schema {
 						},
 					},
 				},
-				"subtitle": visualSubtitleLabelOptionsDataSourceSchema(),
-				"title":    visualTitleLabelOptionsDataSourceSchema(),
+				attrSubtitle: visualSubtitleLabelOptionsDataSourceSchema(),
+				"title":      visualTitleLabelOptionsDataSourceSchema(),
 			},
 		},
 	}

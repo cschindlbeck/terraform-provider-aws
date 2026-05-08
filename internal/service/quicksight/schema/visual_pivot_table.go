@@ -26,7 +26,7 @@ func pivotTableVisualSchema() *schema.Schema {
 			Schema: map[string]*schema.Schema{
 				attrVisualID:      idSchema(),
 				names.AttrActions: visualCustomActionsSchema(customActionsMaxItems), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualCustomAction.html
-				"chart_configuration": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_PivotTableConfiguration.html
+				attrChartConfiguration: { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_PivotTableConfiguration.html
 					Type:     schema.TypeList,
 					Optional: true,
 					MinItems: 1,
@@ -54,7 +54,7 @@ func pivotTableVisualSchema() *schema.Schema {
 														MaxItems: 20,
 														Elem: &schema.Resource{
 															Schema: map[string]*schema.Schema{
-																"field_id":    stringLenBetweenSchema(attrRequired, 1, 512),
+																attrFieldID:   stringLenBetweenSchema(attrRequired, 1, 512),
 																"field_value": stringLenBetweenSchema(attrRequired, 1, 2048),
 															},
 														},
@@ -73,7 +73,7 @@ func pivotTableVisualSchema() *schema.Schema {
 											MaxItems: 100,
 											Elem: &schema.Resource{
 												Schema: map[string]*schema.Schema{
-													"field_id":     stringLenBetweenSchema(attrRequired, 1, 512),
+													attrFieldID:    stringLenBetweenSchema(attrRequired, 1, 512),
 													"custom_label": stringLenBetweenSchema(attrOptional, 1, 2048),
 													attrVisibility: stringEnumSchema[awstypes.Visibility](attrOptional),
 												},
@@ -82,7 +82,7 @@ func pivotTableVisualSchema() *schema.Schema {
 									},
 								},
 							},
-							"field_wells": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_PivotTableFieldWells.html
+							attrFieldWells: { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_PivotTableFieldWells.html
 								Type:     schema.TypeList,
 								Optional: true,
 								MinItems: 1,
@@ -132,7 +132,7 @@ func pivotTableVisualSchema() *schema.Schema {
 											MaxItems: 200,
 											Elem: &schema.Resource{
 												Schema: map[string]*schema.Schema{
-													"field_id": stringLenBetweenSchema(attrRequired, 1, 512),
+													attrFieldID: stringLenBetweenSchema(attrRequired, 1, 512),
 													"sort_by": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_PivotTableSortBy.html
 														Type:     schema.TypeList,
 														Required: true,
@@ -140,7 +140,7 @@ func pivotTableVisualSchema() *schema.Schema {
 														MaxItems: 1,
 														Elem: &schema.Resource{
 															Schema: map[string]*schema.Schema{
-																"column": columnSortSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnSort.html
+																attrColumn: columnSortSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnSort.html
 																"data_path": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_DataPathSort.html
 																	Type:     schema.TypeList,
 																	Optional: true,
@@ -221,7 +221,7 @@ func pivotTableVisualSchema() *schema.Schema {
 											MaxItems: 1,
 											Elem: &schema.Resource{
 												Schema: map[string]*schema.Schema{
-													"field_id": stringLenBetweenSchema(attrRequired, 1, 512),
+													attrFieldID: stringLenBetweenSchema(attrRequired, 1, 512),
 													names.AttrScope: { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_PivotTableConditionalFormattingScope.html
 														Type:     schema.TypeList,
 														Optional: true,
@@ -243,8 +243,8 @@ func pivotTableVisualSchema() *schema.Schema {
 						},
 					},
 				},
-				"subtitle": visualSubtitleLabelOptionsSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualSubtitleLabelOptions.html
-				attrTitle:  visualTitleLabelOptionsSchema(),    // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualTitleLabelOptions.html
+				attrSubtitle: visualSubtitleLabelOptionsSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualSubtitleLabelOptions.html
+				attrTitle:    visualTitleLabelOptionsSchema(),    // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_VisualTitleLabelOptions.html
 			},
 		},
 	}
@@ -258,7 +258,7 @@ func pivotTableVisualDataSourceSchema() *schema.Schema {
 			Schema: map[string]*schema.Schema{
 				"visual_id":       idDataSourceSchema(),
 				names.AttrActions: visualCustomActionsDataSourceSchema(),
-				"chart_configuration": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_PivotTableConfiguration.html
+				attrChartConfiguration: { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_PivotTableConfiguration.html
 					Type:     schema.TypeList,
 					Computed: true,
 					Elem: &schema.Resource{
@@ -283,7 +283,7 @@ func pivotTableVisualDataSourceSchema() *schema.Schema {
 											Computed: true,
 											Elem: &schema.Resource{
 												Schema: map[string]*schema.Schema{
-													"field_id":     stringComputedOnly(),
+													attrFieldID:    stringComputedOnly(),
 													"custom_label": stringComputedOnly(),
 													"visibility":   stringEnumDataSourceSchema[awstypes.Visibility](),
 												},
@@ -292,7 +292,7 @@ func pivotTableVisualDataSourceSchema() *schema.Schema {
 									},
 								},
 							},
-							"field_wells": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_PivotTableFieldWells.html
+							attrFieldWells: { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_PivotTableFieldWells.html
 								Type:     schema.TypeList,
 								Computed: true,
 								Elem: &schema.Resource{
@@ -331,13 +331,13 @@ func pivotTableVisualDataSourceSchema() *schema.Schema {
 											Computed: true,
 											Elem: &schema.Resource{
 												Schema: map[string]*schema.Schema{
-													"field_id": stringComputedOnly(),
+													attrFieldID: stringComputedOnly(),
 													"sort_by": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_PivotTableSortBy.html
 														Type:     schema.TypeList,
 														Computed: true,
 														Elem: &schema.Resource{
 															Schema: map[string]*schema.Schema{
-																"column": columnSortDataSourceSchema(),
+																attrColumn: columnSortDataSourceSchema(),
 																"data_path": { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_DataPathSort.html
 																	Type:     schema.TypeList,
 																	Computed: true,
@@ -406,7 +406,7 @@ func pivotTableVisualDataSourceSchema() *schema.Schema {
 											Computed: true,
 											Elem: &schema.Resource{
 												Schema: map[string]*schema.Schema{
-													"field_id": stringComputedOnly(),
+													attrFieldID: stringComputedOnly(),
 													names.AttrScope: { // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_PivotTableConditionalFormattingScope.html
 														Type:     schema.TypeList,
 														Computed: true,
@@ -426,8 +426,8 @@ func pivotTableVisualDataSourceSchema() *schema.Schema {
 						},
 					},
 				},
-				"subtitle": visualSubtitleLabelOptionsDataSourceSchema(),
-				"title":    visualTitleLabelOptionsDataSourceSchema(),
+				attrSubtitle: visualSubtitleLabelOptionsDataSourceSchema(),
+				"title":      visualTitleLabelOptionsDataSourceSchema(),
 			},
 		},
 	}
@@ -571,7 +571,7 @@ var subtotalOptionsSchema = sync.OnceValue(func() *schema.Schema {
 					MaxItems: 100,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"field_id": stringLenBetweenSchema(attrOptional, 1, 512),
+							attrFieldID: stringLenBetweenSchema(attrOptional, 1, 512),
 						},
 					},
 				},
@@ -597,7 +597,7 @@ var subtotalOptionsDataSourceSchema = sync.OnceValue(func() *schema.Schema {
 					Computed: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"field_id": stringComputedOnly(),
+							attrFieldID: stringComputedOnly(),
 						},
 					},
 				},
@@ -2019,7 +2019,7 @@ func flattenPivotTableCellConditionalFormatting(apiObject *awstypes.PivotTableCe
 	}
 
 	tfMap := map[string]any{
-		"field_id": aws.ToString(apiObject.FieldId),
+		attrFieldID: aws.ToString(apiObject.FieldId),
 	}
 
 	if apiObject.Scope != nil {

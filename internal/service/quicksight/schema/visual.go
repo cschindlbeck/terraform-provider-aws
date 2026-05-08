@@ -157,7 +157,7 @@ var tooltipOptionsSchema = sync.OnceValue(func() *schema.Schema {
 											MaxItems: 1,
 											Elem: &schema.Resource{
 												Schema: map[string]*schema.Schema{
-													"column":      columnSchema(true),               // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+													attrColumn:    columnSchema(true),               // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
 													"aggregation": aggregationFunctionSchema(false), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_AggregationFunction.html
 													"label": {
 														Type:     schema.TypeString,
@@ -174,7 +174,7 @@ var tooltipOptionsSchema = sync.OnceValue(func() *schema.Schema {
 											MaxItems: 1,
 											Elem: &schema.Resource{
 												Schema: map[string]*schema.Schema{
-													"field_id": stringLenBetweenSchema(attrRequired, 1, 512),
+													attrFieldID: stringLenBetweenSchema(attrRequired, 1, 512),
 													"label": {
 														Type:     schema.TypeString,
 														Optional: true,
@@ -219,7 +219,7 @@ var tooltipOptionsDataSourceSchema = sync.OnceValue(func() *schema.Schema {
 											Computed: true,
 											Elem: &schema.Resource{
 												Schema: map[string]*schema.Schema{
-													"column":      columnDataSourceSchema(),              // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
+													attrColumn:    columnDataSourceSchema(),              // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ColumnIdentifier.html
 													"aggregation": aggregationFunctionDataSourceSchema(), // https://docs.aws.amazon.com/quicksight/latest/APIReference/API_AggregationFunction.html
 													"label":       stringComputedOnly(),
 													"visibility":  stringEnumDataSourceSchema[awstypes.Visibility](),
@@ -231,7 +231,7 @@ var tooltipOptionsDataSourceSchema = sync.OnceValue(func() *schema.Schema {
 											Computed: true,
 											Elem: &schema.Resource{
 												Schema: map[string]*schema.Schema{
-													"field_id":   stringComputedOnly(),
+													attrFieldID:  stringComputedOnly(),
 													"label":      stringComputedOnly(),
 													"visibility": stringEnumDataSourceSchema[awstypes.Visibility](),
 												},
@@ -309,7 +309,7 @@ func dataPathValueSchema(maxItems int) *schema.Schema {
 		MaxItems: maxItems,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"field_id":    stringLenBetweenSchema(attrRequired, 1, 512),
+				attrFieldID:   stringLenBetweenSchema(attrRequired, 1, 512),
 				"field_value": stringLenBetweenSchema(attrRequired, 1, 2048),
 			},
 		},
@@ -322,7 +322,7 @@ func dataPathValueDataSourceSchema() *schema.Schema {
 		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"field_id":    stringComputedOnly(),
+				attrFieldID:   stringComputedOnly(),
 				"field_value": stringComputedOnly(),
 			},
 		},
@@ -724,7 +724,7 @@ var dataLabelOptionsSchema = sync.OnceValue(func() *schema.Schema {
 								Optional: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
-										"field_id":     stringLenBetweenSchema(attrOptional, 1, 512),
+										attrFieldID:    stringLenBetweenSchema(attrOptional, 1, 512),
 										"field_value":  stringLenBetweenSchema(attrOptional, 1, 2048),
 										attrVisibility: stringEnumSchema[awstypes.Visibility](attrOptional),
 									},
@@ -737,7 +737,7 @@ var dataLabelOptionsSchema = sync.OnceValue(func() *schema.Schema {
 								Optional: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
-										"field_id":     stringLenBetweenSchema(attrOptional, 1, 512),
+										attrFieldID:    stringLenBetweenSchema(attrOptional, 1, 512),
 										attrVisibility: stringEnumSchema[awstypes.Visibility](attrOptional),
 									},
 								},
@@ -807,7 +807,7 @@ var dataLabelOptionsDataSourceSchema = sync.OnceValue(func() *schema.Schema {
 								Computed: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
-										"field_id":    stringComputedOnly(),
+										attrFieldID:   stringComputedOnly(),
 										"field_value": stringComputedOnly(),
 										"visibility":  stringEnumDataSourceSchema[awstypes.Visibility](),
 									},
@@ -818,7 +818,7 @@ var dataLabelOptionsDataSourceSchema = sync.OnceValue(func() *schema.Schema {
 								Computed: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
-										"field_id":   stringComputedOnly(),
+										attrFieldID:  stringComputedOnly(),
 										"visibility": stringEnumDataSourceSchema[awstypes.Visibility](),
 									},
 								},
