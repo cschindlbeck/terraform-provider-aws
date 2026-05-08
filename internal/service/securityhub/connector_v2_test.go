@@ -174,6 +174,44 @@ func testAccConnectorV2_kmsKeyARN(t *testing.T) {
 	})
 }
 
+func testAccConnectorV2_connectorProviderUpdate(t *testing.T) {
+	ctx := acctest.Context(t)
+	var connector securityhub.GetConnectorV2Output
+	resourceName := "aws_securityhub_connector_v2.test"
+	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
+
+	acctest.Test(ctx, t, resource.TestCase{
+		PreCheck:                 func() { acctest.PreCheck(ctx, t) },
+		ErrorCheck:               acctest.ErrorCheck(t, names.SecurityHubServiceID),
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckConnectorV2Destroy(ctx, t),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConnectorV2Config_jiraProjectKey(rName, "TEST1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckConnectorV2Exists(ctx, t, resourceName, &connector),
+				),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionCreate),
+					},
+				},
+			},
+			{
+				Config: testAccConnectorV2Config_jiraProjectKey(rName, "TEST2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckConnectorV2Exists(ctx, t, resourceName, &connector),
+				),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+					},
+				},
+			},
+		},
+	})
+}
+
 func testAccConnectorV2_tags(t *testing.T) {
 	ctx := acctest.Context(t)
 	var connector securityhub.GetConnectorV2Output
@@ -339,6 +377,44 @@ resource "aws_securityhub_connector_v2" "test" {
 `, rName, description))
 }
 
+func testAccConnectorV2Config_kmsKeyARN(rName string) string {
+	return acctest.ConfigCompose(testAccConnectorV2Config_base(), fmt.Sprintf(`
+resource "aws_securityhub_connector_v2" "test" {
+  name        = %[1]q
+  kms_key_arn = aws_kms_key.test.arn
+
+  connector_provider {
+    jira_cloud {
+      project_key = "TEST"
+    }
+  }
+
+  depends_on = [aws_securityhub_aggregator_v2.test]
+}
+
+resource "aws_kms_key" "test" {
+  description             = %[1]q
+  deletion_window_in_days = 7
+}
+`, rName))
+}
+
+func testAccConnectorV2Config_jiraProjectKey(rName, projectKey string) string {
+	return acctest.ConfigCompose(testAccConnectorV2Config_base(), fmt.Sprintf(`
+resource "aws_securityhub_connector_v2" "test" {
+  name = %[1]q
+
+  connector_provider {
+    jira_cloud {
+      project_key = %[2]q
+    }
+  }
+
+  depends_on = [aws_securityhub_aggregator_v2.test]
+}
+`, rName, projectKey))
+}
+
 func testAccConnectorV2Config_tags1(rName, tagKey1, tagValue1 string) string {
 	return acctest.ConfigCompose(testAccConnectorV2Config_base(), fmt.Sprintf(`
 resource "aws_securityhub_connector_v2" "test" {
@@ -380,26 +456,4 @@ resource "aws_securityhub_connector_v2" "test" {
 `, rName, tagKey1, tagValue1, tagKey2, tagValue2))
 }
 
-func testAccConnectorV2Config_kmsKeyARN(rName string) string {
-	return acctest.ConfigCompose(testAccConnectorV2Config_base(), fmt.Sprintf(`
-resource "aws_securityhub_connector_v2" "test" {
-  name        = %[1]q
-  kms_key_arn = aws_kms_key.test.arn
-
-  connector_provider {
-    jira_cloud {
-      project_key = "TEST"
-    }
-  }
-
-  depends_on = [aws_securityhub_aggregator_v2.test]
-}
-
-resource "aws_kms_key" "test" {
-  description             = %[1]q
-  deletion_window_in_days = 7
-}
-`, rName))
-}
-
-// TODO: provider update, ServiceNow.
+// TODO: ServiceNow.
