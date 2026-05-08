@@ -6,6 +6,7 @@ package securityhub
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
@@ -19,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-aws/internal/errs/fwdiag"
 	"github.com/hashicorp/terraform-provider-aws/internal/framework"
 	fwflex "github.com/hashicorp/terraform-provider-aws/internal/framework/flex"
+	fwtypes "github.com/hashicorp/terraform-provider-aws/internal/framework/types"
 	"github.com/hashicorp/terraform-provider-aws/internal/retry"
 	tftags "github.com/hashicorp/terraform-provider-aws/internal/tags"
 	"github.com/hashicorp/terraform-provider-aws/internal/tfresource"
@@ -68,7 +70,8 @@ func (r *connectorV2Resource) Schema(ctx context.Context, request resource.Schem
 				Optional: true,
 			},
 			names.AttrKMSKeyARN: schema.StringAttribute{
-				Optional: true,
+				CustomType: fwtypes.ARNType,
+				Optional:   true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -106,6 +109,7 @@ func (r *connectorV2Resource) Create(ctx context.Context, request resource.Creat
 		return
 	}
 
+	name := fwflex.StringValueFromFramework(ctx, data.Name)
 	input := securityhub.CreateConnectorV2Input{
 		Name:     data.Name.ValueStringPointer(),
 		Provider: &awstypes.ProviderConfigurationMemberJiraCloud{Value: providerCfg},
@@ -116,21 +120,22 @@ func (r *connectorV2Resource) Create(ctx context.Context, request resource.Creat
 		input.Description = data.Description.ValueStringPointer()
 	}
 
-	if !data.KmsKeyArn.IsNull() {
-		input.KmsKeyArn = data.KmsKeyArn.ValueStringPointer()
+	if !data.KmsKeyARN.IsNull() {
+		input.KmsKeyArn = data.KmsKeyARN.ValueStringPointer()
 	}
 
 	output, err := conn.CreateConnectorV2(ctx, &input)
 
 	if err != nil {
-		response.Diagnostics.AddError("creating Security Hub V2 Connector", err.Error())
+		response.Diagnostics.AddError(fmt.Sprintf("creating Security Hub V2 Connector (%s)", name), err.Error())
 		return
 	}
 
-	data.ARN = fwflex.StringToFramework(ctx, output.ConnectorArn)
-	data.AuthURL = fwflex.StringToFramework(ctx, output.AuthUrl)
-	data.ConnectorID = fwflex.StringToFramework(ctx, output.ConnectorId)
-	data.ConnectorStatus = types.StringValue(string(output.ConnectorStatus))
+	// Set values for unknowns.
+	response.Diagnostics.Append(fwflex.Flatten(ctx, output, &data)...)
+	if response.Diagnostics.HasError() {
+		return
+	}
 
 	response.Diagnostics.Append(response.State.Set(ctx, data)...)
 }
@@ -147,7 +152,7 @@ func (r *connectorV2Resource) Read(ctx context.Context, request resource.ReadReq
 	// On import, only ARN is set. Extract connector_id from the ARN resource path.
 	connectorID := data.ConnectorID.ValueString()
 	if connectorID == "" {
-		if parts := strings.Split(data.ARN.ValueString(), "/"); len(parts) > 1 {
+		if parts := strings.Split(data.ConnectorARN.ValueString(), "/"); len(parts) > 1 {
 			connectorID = parts[len(parts)-1]
 		}
 	}
@@ -165,11 +170,11 @@ func (r *connectorV2Resource) Read(ctx context.Context, request resource.ReadReq
 		return
 	}
 
-	data.ARN = fwflex.StringToFramework(ctx, output.ConnectorArn)
-	data.ConnectorID = fwflex.StringToFramework(ctx, output.ConnectorId)
-	data.Description = fwflex.StringToFramework(ctx, output.Description)
-	data.KmsKeyArn = fwflex.StringToFramework(ctx, output.KmsKeyArn)
-	data.Name = fwflex.StringToFramework(ctx, output.Name)
+	// Set attributes for import.
+	response.Diagnostics.Append(fwflex.Flatten(ctx, output, &data)...)
+	if response.Diagnostics.HasError() {
+		return
+	}
 
 	response.Diagnostics.Append(response.State.Set(ctx, &data)...)
 }
@@ -258,12 +263,12 @@ func findConnectorV2ByID(ctx context.Context, conn *securityhub.Client, connecto
 
 type connectorV2ResourceModel struct {
 	framework.WithRegionModel
-	ARN             types.String `tfsdk:"arn"`
 	AuthURL         types.String `tfsdk:"auth_url"`
+	ConnectorARN    types.String `tfsdk:"arn"`
 	ConnectorID     types.String `tfsdk:"connector_id"`
 	ConnectorStatus types.String `tfsdk:"connector_status"`
 	Description     types.String `tfsdk:"description"`
-	KmsKeyArn       types.String `tfsdk:"kms_key_arn"`
+	KmsKeyARN       fwtypes.ARN  `tfsdk:"kms_key_arn"`
 	Name            types.String `tfsdk:"name"`
 	ProviderJSON    types.String `tfsdk:"provider_json"`
 	Tags            tftags.Map   `tfsdk:"tags"`
