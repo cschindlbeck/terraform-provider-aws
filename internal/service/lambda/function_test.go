@@ -849,7 +849,7 @@ func TestAccLambdaFunction_nilDeadLetter(t *testing.T) {
 	})
 }
 
-func TestAccLambdaFunction_fileSystem(t *testing.T) {
+func TestAccLambdaFunction_efsFileSystem(t *testing.T) {
 	ctx := acctest.Context(t)
 	if testing.Short() {
 		t.Skip("skipping long-running test in short mode")
@@ -867,7 +867,7 @@ func TestAccLambdaFunction_fileSystem(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Ensure a function with lambda file system configuration can be created
 			{
-				Config: testAccFunctionConfig_fileSystem(rName),
+				Config: testAccFunctionConfig_efsFileSystem(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckFunctionExists(ctx, t, resourceName, &conf),
 					testAccCheckFunctionInvokeARN(resourceName, &conf),
@@ -886,7 +886,7 @@ func TestAccLambdaFunction_fileSystem(t *testing.T) {
 			},
 			// Ensure lambda file system configuration can be updated
 			{
-				Config: testAccFunctionConfig_fileSystemUpdate(rName),
+				Config: testAccFunctionConfig_efsFileSystemUpdate(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckFunctionExists(ctx, t, resourceName, &conf),
 					resource.TestCheckResourceAttr(resourceName, "file_system_config.#", "1"),
@@ -3763,7 +3763,7 @@ resource "aws_lambda_function" "test" {
 `, rName))
 }
 
-func testAccFunctionConfig_fileSystem(rName string) string {
+func testAccFunctionConfig_efsFileSystem(rName string) string {
 	return acctest.ConfigCompose(
 		acctest.ConfigLambdaBase(rName, rName, rName),
 		fmt.Sprintf(`
@@ -3820,7 +3820,7 @@ resource "aws_lambda_function" "test" {
 `, rName))
 }
 
-func testAccFunctionConfig_fileSystemUpdate(rName string) string {
+func testAccFunctionConfig_efsFileSystemUpdate(rName string) string {
 	return acctest.ConfigCompose(
 		acctest.ConfigLambdaBase(rName, rName, rName),
 		fmt.Sprintf(`
