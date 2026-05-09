@@ -906,6 +906,45 @@ func TestAccLambdaFunction_fileSystem(t *testing.T) {
 	})
 }
 
+func TestAccLambdaFunction_s3FileSystem(t *testing.T) {
+	ctx := acctest.Context(t)
+	if testing.Short() {
+		t.Skip("skipping long-running test in short mode")
+	}
+
+	var conf lambda.GetFunctionOutput
+	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
+	resourceName := "aws_lambda_function.test"
+
+	acctest.ParallelTest(ctx, t, resource.TestCase{
+		PreCheck:                 func() { acctest.PreCheck(ctx, t) },
+		ErrorCheck:               acctest.ErrorCheck(t, names.LambdaServiceID),
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckFunctionDestroy(ctx, t),
+		Steps: []resource.TestStep{
+			// Ensure a function with lambda file system configuration can be created
+			{
+				Config: testAccFunctionConfig_s3FileSystem(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckFunctionExists(ctx, t, resourceName, &conf),
+					testAccCheckFunctionInvokeARN(resourceName, &conf),
+					testAccCheckFunctionQualifiedInvokeARN(resourceName, &conf),
+					resource.TestCheckResourceAttr(resourceName, "file_system_config.#", "1"),
+					resource.TestCheckResourceAttrPair(resourceName, "file_system_config.0.arn", "aws_s3files_access_point.for_lambda", names.AttrARN),
+					resource.TestCheckResourceAttr(resourceName, "file_system_config.0.local_mount_path", "/mnt/s3files"),
+				),
+			},
+			// Ensure configuration can be imported
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"filename", "publish"},
+			},
+		},
+	})
+}
+
 func TestAccLambdaFunction_image(t *testing.T) {
 	ctx := acctest.Context(t)
 	key := "AWS_LAMBDA_IMAGE_LATEST_ID"
@@ -3834,6 +3873,263 @@ resource "aws_lambda_function" "test" {
   }
 
   depends_on = [aws_efs_mount_target.test]
+}
+`, rName))
+}
+
+func testAccFunctionConfig_s3FileSystem(rName string) string {
+	return acctest.ConfigCompose(
+		acctest.ConfigLambdaBase(rName, rName, rName),
+		fmt.Sprintf(`
+data "aws_caller_identity" "current" {}
+data "aws_region" "current" {}
+
+resource "aws_s3_bucket" "lambda_file_system" {
+  bucket           = "%[1]s-${data.aws_caller_identity.current.account_id}-${data.aws_region.current.name}-an"
+  bucket_namespace = "account-regional"
+  force_destroy    = true
+}
+
+resource "aws_s3_bucket_versioning" "lambda_file_system" {
+  bucket = aws_s3_bucket.lambda_file_system.bucket
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+data "aws_iam_policy_document" "s3files_policy" {
+  statement {
+    actions = [
+      "s3:ListBucket",
+      "s3:ListBucketVersions"
+    ]
+    effect = "Allow"
+    resources = [
+      aws_s3_bucket.lambda_file_system.arn
+    ]
+    condition {
+      test     = "StringEquals"
+      variable = "aws:ResourceAccount"
+      values   = [data.aws_caller_identity.current.account_id]
+    }
+  }
+  statement {
+    actions = [
+      "s3:AbortMultipartUpload",
+      "s3:DeleteObject*",
+      "s3:GetObject*",
+      "s3:List*",
+      "s3:PutObject*"
+    ]
+    effect = "Allow"
+    resources = [
+      "${aws_s3_bucket.lambda_file_system.arn}/*"
+    ]
+    condition {
+      test     = "StringEquals"
+      variable = "aws:ResourceAccount"
+      values   = [data.aws_caller_identity.current.account_id]
+    }
+  }
+  statement {
+    actions = [
+      "kms:GenerateDataKey",
+      "kms:Encrypt",
+      "kms:Decrypt",
+      "kms:ReEncryptFrom",
+      "kms:ReEncryptTo"
+    ]
+    effect    = "Allow"
+    resources = ["arn:aws:kms:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:*"]
+    condition {
+      test     = "StringLike"
+      variable = "kms:ViaService"
+      values   = ["s3.${data.aws_region.current.region}.amazonaws.com"]
+    }
+    condition {
+      test     = "StringLike"
+      variable = "kms:EncryptionContext:aws:s3:arn"
+      values = [
+        aws_s3_bucket.lambda_file_system.arn,
+        "${aws_s3_bucket.lambda_file_system.arn}/*"
+      ]
+    }
+  }
+  statement {
+    actions = [
+      "events:DeleteRule",
+      "events:DisableRule",
+      "events:EnableRule",
+      "events:PutRule",
+      "events:PutTargets",
+      "events:RemoveTargets"
+    ]
+    effect = "Allow"
+    resources = [
+      "arn:aws:events:*:*:rule/DO-NOT-DELETE-S3-Files*"
+    ]
+    condition {
+      test     = "StringEquals"
+      variable = "events:ManagedBy"
+      values   = ["elasticfilesystem.amazonaws.com"]
+    }
+  }
+  statement {
+    actions = [
+      "events:DescribeRule",
+      "events:ListRuleNamesByTarget",
+      "events:ListRules",
+      "events:ListTargetsByRule"
+    ]
+    effect = "Allow"
+    resources = [
+      "arn:aws:events:*:*:rule/*"
+    ]
+  }
+}
+
+data "aws_iam_policy_document" "assume_role_s3files" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    effect  = "Allow"
+    principals {
+      type        = "Service"
+      identifiers = ["elasticfilesystem.amazonaws.com"]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceAccount"
+      values   = [data.aws_caller_identity.current.account_id]
+    }
+    condition {
+      test     = "ArnLike"
+      variable = "aws:SourceArn"
+      values   = ["arn:aws:s3files:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:file-system/*"]
+    }
+  }
+}
+
+resource "aws_iam_role" "s3files" {
+  assume_role_policy = data.aws_iam_policy_document.assume_role_s3files.json
+  name               = "%[1]s-s3files-lambda-role"
+}
+
+resource "aws_iam_role_policy" "s3files" {
+  policy = data.aws_iam_policy_document.s3files_policy.json
+  role   = aws_iam_role.s3files.name
+}
+
+resource "aws_s3files_file_system" "for_lambda" {
+  bucket   = aws_s3_bucket.lambda_file_system.arn
+  role_arn = aws_iam_role.s3files.arn
+
+  depends_on = [
+    aws_s3_bucket_versioning.lambda_file_system
+  ]
+}
+
+resource "aws_s3files_access_point" "for_lambda" {
+  file_system_id = aws_s3files_file_system.for_lambda.id
+
+  root_directory {
+    path = "/lambda"
+    creation_permissions {
+      owner_gid   = 1000
+      owner_uid   = 1000
+      permissions = "755"
+    }
+  }
+
+  posix_user {
+    gid = 1000
+    uid = 1000
+  }
+}
+
+resource "aws_security_group" "s3files_mount_targets" {
+  name        = "%[1]s-s3files-mount-targets-sg"
+  vpc_id      = aws_vpc.vpc_for_lambda.id
+}
+
+resource "aws_vpc_security_group_ingress_rule" "s3files_mount_targets_nfs" {
+  ip_protocol                  = "tcp"
+  from_port                    = 2049
+  to_port                      = 2049
+  referenced_security_group_id = aws_security_group.lambda_s3files.id
+  security_group_id            = aws_security_group.s3files_mount_targets.id
+}
+
+resource "aws_s3files_mount_target" "for_lambda" {
+  file_system_id  = aws_s3files_file_system.for_lambda.id
+  subnet_id       = aws_subnet.subnet_for_lambda_az2.id
+  security_groups = [aws_security_group.s3files_mount_targets.id]
+}
+
+data "aws_iam_policy_document" "lambda_s3files" {
+  statement {
+    actions = [
+      "s3files:ClientMount",
+      "s3files:ClientWrite",
+      "s3files:ListFileSystems",
+      "s3files:ListAccessPoints",
+      "s3files:GetFileSystem",
+      "s3files:GetAccessPoint",
+      "s3files:CreateAccessPoint"
+    ]
+    effect    = "Allow"
+    resources = ["*"]
+  }
+  statement {
+    actions = [
+      "s3:GetObject",
+      "s3:GetObjectVersion"
+    ]
+    effect    = "Allow"
+    resources = ["${aws_s3_bucket.lambda_file_system.arn}/*"]
+  }
+}
+
+resource "aws_iam_role_policy" "lambda_s3files" {
+  policy = data.aws_iam_policy_document.lambda_s3files.json
+  role   = aws_iam_role.iam_for_lambda.name
+}
+
+// Use more restricted security groups than that provided by acctest.ConfigLambdaBase
+resource "aws_security_group" "lambda_s3files" {
+  name        = "%[1]s-lambda-s3files-sg"
+  vpc_id      = aws_vpc.vpc_for_lambda.id
+}
+
+resource "aws_vpc_security_group_egress_rule" "lambda_s3files_nfs" {
+  ip_protocol                  = "tcp"
+  security_group_id            = aws_security_group.lambda_s3files.id
+  from_port                    = 2049
+  to_port                      = 2049
+  referenced_security_group_id = aws_security_group.s3files_mount_targets.id
+}
+
+resource "aws_lambda_function" "test" {
+  filename      = "test-fixtures/lambda_invocation.zip"
+  function_name = %[1]q
+  role          = aws_iam_role.iam_for_lambda.arn
+  handler       = "lambda_invocation.handler"
+  runtime       = "nodejs24.x"
+
+  vpc_config {
+    subnet_ids         = [aws_subnet.subnet_for_lambda_az2.id]
+    security_group_ids = [aws_security_group.lambda_s3files.id]
+  }
+
+  file_system_config {
+    arn              = aws_s3files_access_point.for_lambda.arn
+    local_mount_path = "/mnt/s3files"
+  }
+  depends_on = [aws_s3files_mount_target.for_lambda]
+}
+
+resource "aws_lambda_invocation" "test" {
+  function_name = aws_lambda_function.test.function_name
+  input         = jsonencode({})
 }
 `, rName))
 }
