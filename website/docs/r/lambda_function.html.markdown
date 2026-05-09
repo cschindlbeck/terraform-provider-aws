@@ -575,7 +575,7 @@ The following arguments are optional:
 * `durable_config` - (Optional) Configuration block for durable function settings. [See below](#durable_config-configuration-block). `durable_config` may only be available in [limited regions](https://builder.aws.com/build/capabilities), including `us-east-2`.
 * `environment` - (Optional) Configuration block for environment variables. [See below](#environment-configuration-block).
 * `ephemeral_storage` - (Optional) Amount of ephemeral storage (`/tmp`) to allocate for the Lambda Function. [See below](#ephemeral_storage-configuration-block).
-* `file_system_config` - (Optional) Configuration block for EFS file system. [See below](#file_system_config-configuration-block).
+* `file_system_config` - (Optional) Configuration block for EFS or S3 Files file system. [See below](#file_system_config-configuration-block).
 * `filename` - (Optional) Path to the function's deployment package within the local filesystem. Conflicts with `image_uri` and `s3_bucket`. One of `filename`, `image_uri`, or `s3_bucket` must be specified.
 * `handler` - (Optional) Function entry point in your code. Required if `package_type` is `Zip`.
 * `image_config` - (Optional) Container image configuration values. [See below](#image_config-configuration-block).
@@ -638,7 +638,7 @@ The following arguments are optional:
 
 ### file_system_config Configuration Block
 
-* `arn` - (Required) ARN of the Amazon EFS Access Point.
+* `arn` - (Required) ARN of the Amazon EFS Access Point, or the Amazon S3 Files access point.
 * `local_mount_path` - (Required) Path where the function can access the file system. Must start with `/mnt/`.
 
 ### image_config Configuration Block
