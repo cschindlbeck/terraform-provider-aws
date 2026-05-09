@@ -225,6 +225,101 @@ resource "aws_lambda_function" "example" {
 }
 ```
 
+### Function with S3 Files File System
+
+```terraform
+data "aws_caller_identity" "current" {}
+data "aws_region" "current" {}
+
+resource "aws_s3_bucket" "lambda_file_system" {
+  bucket           = "example-${data.aws_caller_identity.current.account_id}-${data.aws_region.current.name}-an"
+  bucket_namespace = "account-regional"
+}
+
+resource "aws_s3_bucket_versioning" "lambda_file_system" {
+  bucket = aws_s3_bucket.lambda_file_system.bucket
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3files_file_system" "for_lambda" {
+  bucket   = aws_s3_bucket.lambda_file_system.arn
+  # For required IAM permissions to use S3Files file system,
+  # see https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-files-prereq-policies.html#s3-files-prereq-iam
+  role_arn = aws_iam_role.s3files.arn
+
+  depends_on = [
+    aws_s3_bucket_versioning.lambda_file_system
+  ]
+}
+
+resource "aws_s3files_access_point" "for_lambda" {
+  file_system_id = aws_s3files_file_system.for_lambda.id
+
+  root_directory {
+    path = "/lambda"
+    creation_permissions {
+      owner_gid   = 1000
+      owner_uid   = 1000
+      permissions = "755"
+    }
+  }
+
+  posix_user {
+    gid = 1000
+    uid = 1000
+  }
+}
+
+resource "aws_security_group" "s3files_mount_targets" {
+  name        = "example-s3files-mount-targets-sg"
+  vpc_id      = aws_vpc.vpc_for_lambda.id
+}
+
+resource "aws_vpc_security_group_ingress_rule" "s3files_mount_targets_nfs" {
+  ip_protocol                  = "tcp"
+  from_port                    = 2049
+  to_port                      = 2049
+  referenced_security_group_id = aws_security_group.lambda_s3files.id
+  security_group_id            = aws_security_group.s3files_mount_targets.id
+}
+
+resource "aws_security_group" "lambda_s3files" {
+  name        = "example-lambda-s3files-sg"
+  vpc_id      = aws_vpc.vpc_for_lambda.id
+}
+
+resource "aws_vpc_security_group_egress_rule" "lambda_s3files_nfs" {
+  ip_protocol                  = "tcp"
+  security_group_id            = aws_security_group.lambda_s3files.id
+  from_port                    = 2049
+  to_port                      = 2049
+  referenced_security_group_id = aws_security_group.s3files_mount_targets.id
+}
+
+resource "aws_lambda_function" "example" {
+  filename      = "function.zip"
+  function_name = "example_s3files_function"
+  # For required IAM permissions to use S3Files with Lambda,
+  # see https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-files-prereq-policies.html#s3-files-prereq-iam
+  role          = aws_iam_role.iam_for_lambda.arn
+  handler       = "exports.example"
+  runtime       = "nodejs24.x"
+
+  vpc_config {
+    subnet_ids         = [aws_subnet.subnet_for_lambda_az1.id]
+    security_group_ids = [aws_security_group.lambda_s3files.id]
+  }
+
+  file_system_config {
+    arn              = aws_s3files_access_point.for_lambda.arn
+    local_mount_path = "/mnt/s3files"
+  }
+  depends_on = [aws_s3files_mount_target.for_lambda]
+}
+```
+
 ### Function with Advanced Logging
 
 ```terraform
