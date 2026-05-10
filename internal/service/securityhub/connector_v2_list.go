@@ -88,6 +88,7 @@ type listConnectorV2Model struct {
 
 func listConnectorV2s(ctx context.Context, conn *securityhub.Client, input *securityhub.ListConnectorsV2Input) iter.Seq2[awstypes.ConnectorSummary, error] {
 	return func(yield func(awstypes.ConnectorSummary, error) bool) {
+		var stopped bool
 		err := listConnectorsV2Pages(ctx, conn, input, func(page *securityhub.ListConnectorsV2Output, lastPage bool) bool {
 			if page == nil {
 				return !lastPage
@@ -95,6 +96,7 @@ func listConnectorV2s(ctx context.Context, conn *securityhub.Client, input *secu
 
 			for _, item := range page.Connectors {
 				if !yield(item, nil) {
+					stopped = true
 					return false
 				}
 			}
@@ -102,7 +104,7 @@ func listConnectorV2s(ctx context.Context, conn *securityhub.Client, input *secu
 			return !lastPage
 		})
 
-		if err != nil {
+		if !stopped && err != nil {
 			yield(inttypes.Zero[awstypes.ConnectorSummary](), fmt.Errorf("listing Security Hub V2 Connectors: %w", err))
 			return
 		}
