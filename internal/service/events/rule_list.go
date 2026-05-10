@@ -105,17 +105,14 @@ func listRules(ctx context.Context, conn *eventbridge.Client, input *eventbridge
 			if page == nil {
 				return !lastPage
 			}
-
 			for _, item := range page.Rules {
 				if !yield(item, nil) {
 					stopped = true
 					return false
 				}
 			}
-
 			return !lastPage
 		})
-
 		if !stopped && err != nil {
 			yield(inttypes.Zero[awstypes.Rule](), fmt.Errorf("listing EventBridge Rules: %w", err))
 			return
