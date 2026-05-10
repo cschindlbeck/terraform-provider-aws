@@ -3940,7 +3940,7 @@ data "aws_iam_policy_document" "s3files_policy" {
       "kms:ReEncryptTo"
     ]
     effect    = "Allow"
-    resources = ["arn:aws:kms:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:*"]
+    resources = ["arn:${data.aws_partition.current.partition}:kms:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:*"]
     condition {
       test     = "StringLike"
       variable = "kms:ViaService"
@@ -3966,7 +3966,7 @@ data "aws_iam_policy_document" "s3files_policy" {
     ]
     effect = "Allow"
     resources = [
-      "arn:aws:events:*:*:rule/DO-NOT-DELETE-S3-Files*"
+      "arn:${data.aws_partition.current.partition}:events:*:*:rule/DO-NOT-DELETE-S3-Files*"
     ]
     condition {
       test     = "StringEquals"
@@ -3983,7 +3983,7 @@ data "aws_iam_policy_document" "s3files_policy" {
     ]
     effect = "Allow"
     resources = [
-      "arn:aws:events:*:*:rule/*"
+      "arn:${data.aws_partition.current.partition}:events:*:*:rule/*"
     ]
   }
 }
@@ -4004,7 +4004,7 @@ data "aws_iam_policy_document" "assume_role_s3files" {
     condition {
       test     = "ArnLike"
       variable = "aws:SourceArn"
-      values   = ["arn:aws:s3files:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:file-system/*"]
+      values   = ["arn:${data.aws_partition.current.partition}:s3files:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:file-system/*"]
     }
   }
 }
@@ -4047,8 +4047,8 @@ resource "aws_s3files_access_point" "for_lambda" {
 }
 
 resource "aws_security_group" "s3files_mount_targets" {
-  name        = "%[1]s-s3files-mount-targets-sg"
-  vpc_id      = aws_vpc.vpc_for_lambda.id
+  name   = "%[1]s-s3files-mount-targets-sg"
+  vpc_id = aws_vpc.vpc_for_lambda.id
 }
 
 resource "aws_vpc_security_group_ingress_rule" "s3files_mount_targets_nfs" {
@@ -4094,7 +4094,7 @@ resource "aws_iam_role_policy" "lambda_s3files" {
   role   = aws_iam_role.iam_for_lambda.name
 }
 
-// Use more restricted security groups than that provided by acctest.ConfigLambdaBase
+# Use more restricted security groups than that provided by acctest.ConfigLambdaBase
 resource "aws_security_group" "lambda_s3files" {
   name   = "%[1]s-lambda-s3files-sg"
   vpc_id = aws_vpc.vpc_for_lambda.id

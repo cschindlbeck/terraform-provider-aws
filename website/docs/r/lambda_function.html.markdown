@@ -286,8 +286,8 @@ resource "aws_vpc_security_group_ingress_rule" "s3files_mount_targets_nfs" {
 }
 
 resource "aws_security_group" "lambda_s3files" {
-  name        = "example-lambda-s3files-sg"
-  vpc_id      = aws_vpc.vpc_for_lambda.id
+  name   = "example-lambda-s3files-sg"
+  vpc_id = aws_vpc.vpc_for_lambda.id
 }
 
 resource "aws_vpc_security_group_egress_rule" "lambda_s3files_nfs" {
