@@ -244,7 +244,7 @@ resource "aws_s3_bucket_versioning" "lambda_file_system" {
 }
 
 resource "aws_s3files_file_system" "for_lambda" {
-  bucket   = aws_s3_bucket.lambda_file_system.arn
+  bucket = aws_s3_bucket.lambda_file_system.arn
   # For required IAM permissions to use S3Files file system,
   # see https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-files-prereq-policies.html#s3-files-prereq-iam
   role_arn = aws_iam_role.s3files.arn
@@ -273,8 +273,8 @@ resource "aws_s3files_access_point" "for_lambda" {
 }
 
 resource "aws_security_group" "s3files_mount_targets" {
-  name        = "example-s3files-mount-targets-sg"
-  vpc_id      = aws_vpc.vpc_for_lambda.id
+  name   = "example-s3files-mount-targets-sg"
+  vpc_id = aws_vpc.vpc_for_lambda.id
 }
 
 resource "aws_vpc_security_group_ingress_rule" "s3files_mount_targets_nfs" {
@@ -303,9 +303,9 @@ resource "aws_lambda_function" "example" {
   function_name = "example_s3files_function"
   # For required IAM permissions to use S3Files with Lambda,
   # see https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-files-prereq-policies.html#s3-files-prereq-iam
-  role          = aws_iam_role.iam_for_lambda.arn
-  handler       = "exports.example"
-  runtime       = "nodejs24.x"
+  role    = aws_iam_role.iam_for_lambda.arn
+  handler = "exports.example"
+  runtime = "nodejs24.x"
 
   vpc_config {
     subnet_ids         = [aws_subnet.subnet_for_lambda_az1.id]

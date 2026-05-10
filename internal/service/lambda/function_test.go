@@ -4096,8 +4096,8 @@ resource "aws_iam_role_policy" "lambda_s3files" {
 
 // Use more restricted security groups than that provided by acctest.ConfigLambdaBase
 resource "aws_security_group" "lambda_s3files" {
-  name        = "%[1]s-lambda-s3files-sg"
-  vpc_id      = aws_vpc.vpc_for_lambda.id
+  name   = "%[1]s-lambda-s3files-sg"
+  vpc_id = aws_vpc.vpc_for_lambda.id
 }
 
 resource "aws_vpc_security_group_egress_rule" "lambda_s3files_nfs" {
