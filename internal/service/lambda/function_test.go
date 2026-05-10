@@ -921,6 +921,12 @@ func TestAccLambdaFunction_s3FileSystem(t *testing.T) {
 		ErrorCheck:               acctest.ErrorCheck(t, names.LambdaServiceID),
 		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckFunctionDestroy(ctx, t),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: "0.12.1",
+			},
+		},
 		Steps: []resource.TestStep{
 			// Ensure a function with lambda file system configuration can be created
 			{
@@ -4127,9 +4133,17 @@ resource "aws_lambda_function" "test" {
   depends_on = [aws_s3files_mount_target.for_lambda]
 }
 
+# Wait for the Security Group attached to the Lambda Function
+# to eventually take effect before invoking it
+resource "time_sleep" "wait_for_sg_ready" {
+  create_duration = "10s"
+  depends_on      = [aws_lambda_function.test]
+}
+
 resource "aws_lambda_invocation" "test" {
   function_name = aws_lambda_function.test.function_name
   input         = jsonencode({})
+  depends_on    = [time_sleep.wait_for_sg_ready]
 }
 `, rName))
 }
