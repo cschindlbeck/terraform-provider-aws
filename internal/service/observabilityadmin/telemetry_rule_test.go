@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-aws/internal/acctest"
+	"github.com/hashicorp/terraform-provider-aws/internal/retry"
 	tfobservabilityadmin "github.com/hashicorp/terraform-provider-aws/internal/service/observabilityadmin"
 	"github.com/hashicorp/terraform-provider-aws/names"
 )
@@ -156,10 +157,17 @@ func testAccCheckTelemetryRuleDestroy(ctx context.Context, t *testing.T) resourc
 				continue
 			}
 
-			_, err := tfobservabilityadmin.FindTelemetryRule(ctx, conn, rs.Primary.ID)
-			if err == nil {
-				return fmt.Errorf("ObservabilityAdmin Telemetry Rule %s still exists", rs.Primary.ID)
+			_, err := tfobservabilityadmin.FindTelemetryRuleByName(ctx, conn, rs.Primary.Attributes["rule_name"])
+
+			if retry.NotFound(err) {
+				return nil
 			}
+
+			if err != nil {
+				return err
+			}
+
+			return fmt.Errorf("ObservabilityAdmin Telemetry Rule %s still exists", rs.Primary.Attributes["rule_name"])
 		}
 
 		return nil
@@ -175,7 +183,7 @@ func testAccCheckTelemetryRuleExists(ctx context.Context, t *testing.T, n string
 
 		conn := acctest.ProviderMeta(ctx, t).ObservabilityAdminClient(ctx)
 
-		_, err := tfobservabilityadmin.FindTelemetryRule(ctx, conn, rs.Primary.ID)
+		_, err := tfobservabilityadmin.FindTelemetryRuleByName(ctx, conn, rs.Primary.Attributes["rule_name"])
 
 		return err
 	}

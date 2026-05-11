@@ -57,8 +57,7 @@ type telemetryRuleResource struct {
 func (r *telemetryRuleResource) Schema(ctx context.Context, request resource.SchemaRequest, response *resource.SchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			names.AttrID: framework.IDAttribute(),
-			"rule_arn":   framework.ARNAttributeComputedOnly(),
+			"rule_arn": framework.ARNAttributeComputedOnly(),
 			"rule_name": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
@@ -74,7 +73,7 @@ func (r *telemetryRuleResource) Schema(ctx context.Context, request resource.Sch
 		},
 		Blocks: map[string]schema.Block{
 			names.AttrRule: schema.ListNestedBlock{
-				CustomType: fwtypes.NewListNestedObjectTypeOf[telemetryRuleBlockModel](ctx),
+				CustomType: fwtypes.NewListNestedObjectTypeOf[telemetryRuleModel](ctx),
 				Validators: []validator.List{
 					listvalidator.IsRequired(),
 					listvalidator.SizeAtLeast(1),
@@ -129,7 +128,6 @@ func (r *telemetryRuleResource) Create(ctx context.Context, request resource.Cre
 
 	// Set values for unknowns.
 	data.RuleARN = fwflex.StringToFramework(ctx, output.RuleArn)
-	data.setID()
 
 	smerr.AddEnrich(ctx, &response.Diagnostics, response.State.Set(ctx, data))
 }
@@ -144,9 +142,7 @@ func (r *telemetryRuleResource) Read(ctx context.Context, request resource.ReadR
 	conn := r.Meta().ObservabilityAdminClient(ctx)
 
 	ruleName := fwflex.StringValueFromFramework(ctx, data.RuleName)
-	output, err := findTelemetryRuleStatus(ctx, conn, &observabilityadmin.GetTelemetryRuleInput{
-		RuleIdentifier: aws.String(ruleName),
-	})
+	out, err := findTelemetryRuleByName(ctx, conn, ruleName)
 	if retry.NotFound(err) {
 		smerr.AddOne(ctx, &response.Diagnostics, fwdiag.NewResourceNotFoundWarningDiagnostic(err))
 		response.State.RemoveResource(ctx)
@@ -158,24 +154,9 @@ func (r *telemetryRuleResource) Read(ctx context.Context, request resource.ReadR
 		return
 	}
 
-	// Set the ID and ARN from the output
-	data.setID()
-	data.RuleARN = fwflex.StringToFramework(ctx, output.RuleArn)
-
-	// Manually set the rule block from the TelemetryRule nested object
-	if output.TelemetryRule != nil {
-		ruleBlock := telemetryRuleBlockModel{
-			ResourceType:  fwtypes.StringEnumValue(output.TelemetryRule.ResourceType),
-			TelemetryType: fwtypes.StringEnumValue(output.TelemetryRule.TelemetryType),
-		}
-
-		ruleList, diags := fwtypes.NewListNestedObjectValueOfPtr(ctx, &ruleBlock)
-		smerr.AddEnrich(ctx, &response.Diagnostics, diags)
-		if response.Diagnostics.HasError() {
-			return
-		}
-
-		data.Rule = ruleList
+	smerr.AddEnrich(ctx, &response.Diagnostics, fwflex.Flatten(ctx, out, &data, fwflex.WithFieldNamePrefix("Memory")))
+	if response.Diagnostics.HasError() {
+		return
 	}
 
 	smerr.AddEnrich(ctx, &response.Diagnostics, response.State.Set(ctx, &data))
@@ -228,8 +209,9 @@ func (r *telemetryRuleResource) Delete(ctx context.Context, request resource.Del
 	conn := r.Meta().ObservabilityAdminClient(ctx)
 
 	ruleName := fwflex.StringValueFromFramework(ctx, data.RuleName)
-	var input observabilityadmin.DeleteTelemetryRuleInput
-	input.RuleIdentifier = aws.String(ruleName)
+	input := observabilityadmin.DeleteTelemetryRuleInput{
+		RuleIdentifier: aws.String(ruleName),
+	}
 
 	_, err := conn.DeleteTelemetryRule(ctx, &input)
 	if errs.IsA[*awstypes.ResourceNotFoundException](err) {
@@ -245,20 +227,15 @@ func (r *telemetryRuleResource) ImportState(ctx context.Context, request resourc
 	resource.ImportStatePassthroughID(ctx, path.Root("rule_name"), request, response)
 }
 
-func findTelemetryRule(ctx context.Context, conn *observabilityadmin.Client, name string) (*awstypes.TelemetryRule, error) {
+func findTelemetryRuleByName(ctx context.Context, conn *observabilityadmin.Client, name string) (*observabilityadmin.GetTelemetryRuleOutput, error) {
 	input := observabilityadmin.GetTelemetryRuleInput{
 		RuleIdentifier: aws.String(name),
 	}
 
-	output, err := findTelemetryRuleStatus(ctx, conn, &input)
-	if err != nil {
-		return nil, err
-	}
-
-	return output.TelemetryRule, nil
+	return findTelemetryRule(ctx, conn, &input)
 }
 
-func findTelemetryRuleStatus(ctx context.Context, conn *observabilityadmin.Client, input *observabilityadmin.GetTelemetryRuleInput) (*observabilityadmin.GetTelemetryRuleOutput, error) {
+func findTelemetryRule(ctx context.Context, conn *observabilityadmin.Client, input *observabilityadmin.GetTelemetryRuleInput) (*observabilityadmin.GetTelemetryRuleOutput, error) {
 	output, err := conn.GetTelemetryRule(ctx, input)
 
 	if errs.IsA[*awstypes.ResourceNotFoundException](err) {
@@ -280,20 +257,15 @@ func findTelemetryRuleStatus(ctx context.Context, conn *observabilityadmin.Clien
 
 type telemetryRuleResourceModel struct {
 	framework.WithRegionModel
-	ID       types.String                                             `tfsdk:"id"`
-	Rule     fwtypes.ListNestedObjectValueOf[telemetryRuleBlockModel] `tfsdk:"rule"`
-	RuleARN  types.String                                             `tfsdk:"rule_arn"`
-	RuleName types.String                                             `tfsdk:"rule_name"`
-	Tags     tftags.Map                                               `tfsdk:"tags"`
-	TagsAll  tftags.Map                                               `tfsdk:"tags_all"`
-	Timeouts timeouts.Value                                           `tfsdk:"timeouts"`
+	Rule     fwtypes.ListNestedObjectValueOf[telemetryRuleModel] `tfsdk:"rule"`
+	RuleARN  types.String                                        `tfsdk:"rule_arn"`
+	RuleName types.String                                        `tfsdk:"rule_name"`
+	Tags     tftags.Map                                          `tfsdk:"tags"`
+	TagsAll  tftags.Map                                          `tfsdk:"tags_all"`
+	Timeouts timeouts.Value                                      `tfsdk:"timeouts"`
 }
 
-func (m *telemetryRuleResourceModel) setID() {
-	m.ID = m.RuleName
-}
-
-type telemetryRuleBlockModel struct {
+type telemetryRuleModel struct {
 	ResourceType  fwtypes.StringEnum[awstypes.ResourceType]  `tfsdk:"resource_type"`
 	TelemetryType fwtypes.StringEnum[awstypes.TelemetryType] `tfsdk:"telemetry_type"`
 }
