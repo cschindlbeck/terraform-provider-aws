@@ -152,7 +152,23 @@ func (r *telemetryEnrichmentResource) Delete(ctx context.Context, req resource.D
 
 func findTelemetryEnrichment(ctx context.Context, conn *observabilityadmin.Client) (*observabilityadmin.GetTelemetryEnrichmentStatusOutput, error) {
 	var input observabilityadmin.GetTelemetryEnrichmentStatusInput
-	out, err := conn.GetTelemetryEnrichmentStatus(ctx, &input)
+	out, err := findTelemetryEnrichmentStatus(ctx, conn, &input)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if status := out.Status; status == awstypes.TelemetryEnrichmentStatusStopped {
+		return nil, &retry.NotFoundError{
+			Message: string(status),
+		}
+	}
+
+	return out, nil
+}
+
+func findTelemetryEnrichmentStatus(ctx context.Context, conn *observabilityadmin.Client, input *observabilityadmin.GetTelemetryEnrichmentStatusInput) (*observabilityadmin.GetTelemetryEnrichmentStatusOutput, error) {
+	out, err := conn.GetTelemetryEnrichmentStatus(ctx, input)
 
 	if errs.IsA[*awstypes.ResourceNotFoundException](err) {
 		return nil, &retry.NotFoundError{
@@ -168,18 +184,13 @@ func findTelemetryEnrichment(ctx context.Context, conn *observabilityadmin.Clien
 		return nil, tfresource.NewEmptyResultError()
 	}
 
-	if status := out.Status; status == awstypes.TelemetryEnrichmentStatusStopped {
-		return nil, &retry.NotFoundError{
-			Message: string(status),
-		}
-	}
-
 	return out, nil
 }
 
 func statusTelemetryEnrichment(conn *observabilityadmin.Client) retry.StateRefreshFunc {
 	return func(ctx context.Context) (any, string, error) {
-		out, err := findTelemetryEnrichment(ctx, conn)
+		var input observabilityadmin.GetTelemetryEnrichmentStatusInput
+		out, err := findTelemetryEnrichmentStatus(ctx, conn, &input)
 		if retry.NotFound(err) {
 			return nil, "", nil
 		}
@@ -210,7 +221,7 @@ func waitTelemetryEnrichmentRunning(ctx context.Context, conn *observabilityadmi
 func waitTelemetryEnrichmentStopped(ctx context.Context, conn *observabilityadmin.Client, timeout time.Duration) (*observabilityadmin.GetTelemetryEnrichmentStatusOutput, error) { //nolint:unparam
 	stateConf := &retry.StateChangeConf{
 		Pending: enum.Slice(awstypes.TelemetryEnrichmentStatusRunning, awstypes.TelemetryEnrichmentStatusImpaired),
-		Target:  []string{},
+		Target:  enum.Slice(awstypes.TelemetryEnrichmentStatusStopped),
 		Refresh: statusTelemetryEnrichment(conn),
 		Timeout: timeout,
 	}
