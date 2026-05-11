@@ -136,7 +136,12 @@ resource "aws_securityhub_connector_v2" "example" {
 
 #### Required
 
-- `connector_id` (String) ID of the Security Hub V2 connector.
+* `connector_id` (String) ID of the Security Hub V2 connector.
+
+#### Optional
+
+* `account_id` (String) AWS Account where this resource is managed.
+* `region` (String) Region where this resource is managed.
 
 In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Security Hub V2 connectors using `connector_id`. For example:
 
