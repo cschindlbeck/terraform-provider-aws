@@ -98,6 +98,55 @@ func TestAccObservabilityAdminTelemetryRule_disappears(t *testing.T) {
 	})
 }
 
+func TestAccObservabilityAdminTelemetryRule_tags(t *testing.T) {
+	ctx := acctest.Context(t)
+	resourceName := "aws_observabilityadmin_telemetry_rule.test"
+	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
+
+	acctest.ParallelTest(ctx, t, resource.TestCase{
+		PreCheck: func() {
+			acctest.PreCheck(ctx, t)
+			testAccTelemetryRulePreCheck(ctx, t)
+		},
+		ErrorCheck:               acctest.ErrorCheck(t, names.ObservabilityAdminServiceID),
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckTelemetryRuleDestroy(ctx, t),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTelemetryRuleConfig_tags1(rName, "key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckTelemetryRuleExists(ctx, t, resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1"),
+				),
+			},
+			{
+				ResourceName:                         resourceName,
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+				ImportStateVerifyIdentifierAttribute: "rule_name",
+			},
+			{
+				Config: testAccTelemetryRuleConfig_tags2(rName, "key1", "value1updated", "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckTelemetryRuleExists(ctx, t, resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+			{
+				Config: testAccTelemetryRuleConfig_tags1(rName, "key2", "value2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckTelemetryRuleExists(ctx, t, resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.key2", "value2"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckTelemetryRuleDestroy(ctx context.Context, t *testing.T) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := acctest.ProviderMeta(ctx, t).ObservabilityAdminClient(ctx)
@@ -138,8 +187,8 @@ resource "aws_observabilityadmin_telemetry_rule" "test" {
   rule_name = %[1]q
 
   rule {
-    resource_type  = "AWS::EC2::Instance"
-    telemetry_type = "Metrics"
+    resource_type  = "AWS::EC2::VPC"
+    telemetry_type = "Logs"
   }
 }
 `, rName)
@@ -156,4 +205,39 @@ resource "aws_observabilityadmin_telemetry_rule" "test" {
   }
 }
 `, rName)
+}
+
+func testAccTelemetryRuleConfig_tags1(rName, tagKey1, tagValue1 string) string {
+	return fmt.Sprintf(`
+resource "aws_observabilityadmin_telemetry_rule" "test" {
+  rule_name = %[1]q
+
+  rule {
+    resource_type  = "AWS::EC2::VPC"
+    telemetry_type = "Logs"
+  }
+
+  tags = {
+    %[2]q = %[3]q
+  }
+}
+`, rName, tagKey1, tagValue1)
+}
+
+func testAccTelemetryRuleConfig_tags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
+	return fmt.Sprintf(`
+resource "aws_observabilityadmin_telemetry_rule" "test" {
+  rule_name = %[1]q
+
+  rule {
+    resource_type  = "AWS::EC2::VPC"
+    telemetry_type = "Logs"
+  }
+
+  tags = {
+    %[2]q = %[3]q
+    %[4]q = %[5]q
+  }
+}
+`, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }
