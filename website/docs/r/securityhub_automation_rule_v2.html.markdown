@@ -48,16 +48,15 @@ resource "aws_securityhub_automation_rule_v2" "example" {
     CompositeOperator = "AND"
   })
 
-  actions_json = jsonencode([
-    {
-      Type = "FINDING_FIELDS_UPDATE"
-      FindingFieldsUpdate = {
-        SeverityId = 99
-        StatusId   = 3
-        Comment    = "Low severity GuardDuty finding suppressed"
-      }
+  action {
+    type = "FINDING_FIELDS_UPDATE"
+
+    finding_fields_update {
+      severity_id = 99
+      status_id   = 3
+      comment     = "Low severity GuardDuty finding suppressed"
     }
-  ])
+  }
 
   depends_on = [aws_securityhub_aggregator_v2.example]
 }
@@ -73,8 +72,24 @@ This resource supports the following arguments:
 * `rule_order` - (Required) The priority of the rule. Lower values indicate higher priority.
 * `rule_status` - (Optional) The status of the rule. Valid values: `ENABLED`, `DISABLED`. Defaults to `ENABLED`.
 * `criteria_json` - (Required) JSON-encoded OCSF finding criteria for the rule. Uses `OcsfFindingFilters` structure with `CompositeFilters` and `CompositeOperator`.
-* `actions_json` - (Required) JSON-encoded list of actions (max 1). Each action has a `Type` (`FINDING_FIELDS_UPDATE` or `EXTERNAL_INTEGRATION`) and corresponding configuration.
+* `action` - (Required) Actions to take when the rule matches. Maximum of 1 action block. See [`action`](#action) below.
 * `tags` - (Optional) Map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](https://registry.terraform.io/providers/hashicorp/aws/latest/docs#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
+
+### `action`
+
+* `type` - (Required) The action type. Valid values: `FINDING_FIELDS_UPDATE`, `EXTERNAL_INTEGRATION`.
+* `finding_fields_update` - (Optional) Settings for updating finding fields. See [`finding_fields_update`](#finding_fields_update) below.
+* `external_integration_configuration` - (Optional) Settings for external integration actions. See [`external_integration_configuration`](#external_integration_configuration) below.
+
+### `finding_fields_update`
+
+* `comment` - (Optional) A comment for the finding.
+* `severity_id` - (Optional) The severity ID to assign.
+* `status_id` - (Optional) The status ID to assign.
+
+### `external_integration_configuration`
+
+* `connector_arn` - (Required) The ARN of the connector.
 
 ## Attribute Reference
 
