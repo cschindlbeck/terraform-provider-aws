@@ -337,7 +337,7 @@ func (r *dbInstanceResource) Schema(ctx context.Context, req resource.SchemaRequ
 				Description: `The maintenance schedule for the DB instance.`,
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
-						"preferred_maintenance_window": schema.StringAttribute{
+						names.AttrPreferredMaintenanceWindow: schema.StringAttribute{
 							Required: true,
 							Validators: []validator.String{
 								stringvalidator.LengthBetween(1, 64),
