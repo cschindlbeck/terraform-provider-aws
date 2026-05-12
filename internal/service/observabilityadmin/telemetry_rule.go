@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -155,7 +156,7 @@ func (r *telemetryRuleResource) Read(ctx context.Context, request resource.ReadR
 		return
 	}
 
-	smerr.AddEnrich(ctx, &response.Diagnostics, fwflex.Flatten(ctx, out, &data, fwflex.WithFieldNamePrefix("Telemetry")))
+	smerr.AddEnrich(ctx, &response.Diagnostics, r.flatten(ctx, out, &data))
 	if response.Diagnostics.HasError() {
 		return
 	}
@@ -222,6 +223,12 @@ func (r *telemetryRuleResource) Delete(ctx context.Context, request resource.Del
 		smerr.AddError(ctx, &response.Diagnostics, err, smerr.ID, ruleName)
 		return
 	}
+}
+
+func (r *telemetryRuleResource) flatten(ctx context.Context, telemetryRule *observabilityadmin.GetTelemetryRuleOutput, data *telemetryRuleResourceModel) diag.Diagnostics {
+	var diags diag.Diagnostics
+	diags.Append(fwflex.Flatten(ctx, telemetryRule, data, fwflex.WithFieldNamePrefix("Telemetry"))...)
+	return diags
 }
 
 func findTelemetryRuleByName(ctx context.Context, conn *observabilityadmin.Client, name string) (*observabilityadmin.GetTelemetryRuleOutput, error) {

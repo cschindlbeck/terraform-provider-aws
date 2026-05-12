@@ -29,10 +29,13 @@ func TestAccObservabilityAdmin_serial(t *testing.T) {
 			"Identity":           testAccObservabilityAdminTelemetryEvaluationForOrganization_identitySerial,
 		},
 		"TelemetryRule": {
-			acctest.CtBasic:      testAccTelemetryRule_basic,
-			acctest.CtDisappears: testAccTelemetryRule_disappears,
-			"tags":               testAccTelemetryRule_tags,
-			"Identity":           testAccObservabilityAdminTelemetryRule_identitySerial,
+			acctest.CtBasic:       testAccTelemetryRule_basic,
+			acctest.CtDisappears:  testAccTelemetryRule_disappears,
+			"tags":                testAccTelemetryRule_tags,
+			"Identity":            testAccObservabilityAdminTelemetryRule_identitySerial,
+			"ListBasic":           testAccTelemetryRule_List_basic,
+			"ListIncludeResource": testAccTelemetryRule_List_includeResource,
+			"ListRegionOverride":  testAccTelemetryRule_List_regionOverride,
 		},
 	}
 
