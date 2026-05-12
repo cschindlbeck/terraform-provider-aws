@@ -192,6 +192,9 @@ func (r *automationRuleV2Resource) Create(ctx context.Context, request resource.
 	// Set values for unknowns.
 	data.RuleARN = fwflex.StringToFramework(ctx, output.RuleArn)
 	data.RuleID = fwflex.StringToFramework(ctx, output.RuleId)
+	if data.RuleStatus.IsUnknown() {
+		data.RuleStatus = fwtypes.StringEnumValue(awstypes.RuleStatusV2Enabled)
+	}
 
 	response.Diagnostics.Append(response.State.Set(ctx, data)...)
 }

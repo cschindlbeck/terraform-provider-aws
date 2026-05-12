@@ -281,7 +281,6 @@ resource "aws_securityhub_automation_rule_v2" "test" {
   rule_name   = %[1]q
   description = "test description"
   rule_order  = 100
-  rule_status = "ENABLED"
 
   criteria_json = jsonencode({
     CompositeFilters = [
