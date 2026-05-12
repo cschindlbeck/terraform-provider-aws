@@ -73,11 +73,11 @@ func testAccObservabilityAdminTelemetryRule_Identity_basic(t *testing.T) {
 					acctest.CtRName: config.StringVariable(rName),
 				},
 				ImportStateKind:                      resource.ImportCommandWithID,
-				ImportStateIdFunc:                    acctest.AttrImportStateIdFunc(resourceName, "connector_id"),
+				ImportStateIdFunc:                    acctest.AttrImportStateIdFunc(resourceName, "rule_name"),
 				ResourceName:                         resourceName,
 				ImportState:                          true,
 				ImportStateVerify:                    true,
-				ImportStateVerifyIdentifierAttribute: "connector_id",
+				ImportStateVerifyIdentifierAttribute: "rule_name",
 			},
 
 			// Step 3: Import block with Import ID
@@ -89,7 +89,7 @@ func testAccObservabilityAdminTelemetryRule_Identity_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateKind:   resource.ImportBlockWithID,
-				ImportStateIdFunc: acctest.AttrImportStateIdFunc(resourceName, "connector_id"),
+				ImportStateIdFunc: acctest.AttrImportStateIdFunc(resourceName, "rule_name"),
 				ImportPlanChecks: resource.ImportPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rule_name"), knownvalue.NotNull()),
@@ -159,11 +159,11 @@ func testAccObservabilityAdminTelemetryRule_Identity_regionOverride(t *testing.T
 					"region":        config.StringVariable(acctest.AlternateRegion()),
 				},
 				ImportStateKind:                      resource.ImportCommandWithID,
-				ImportStateIdFunc:                    acctest.CrossRegionAttrImportStateIdFunc(resourceName, "connector_id"),
+				ImportStateIdFunc:                    acctest.CrossRegionAttrImportStateIdFunc(resourceName, "rule_name"),
 				ResourceName:                         resourceName,
 				ImportState:                          true,
 				ImportStateVerify:                    true,
-				ImportStateVerifyIdentifierAttribute: "connector_id",
+				ImportStateVerifyIdentifierAttribute: "rule_name",
 			},
 
 			// Step 3: Import block with Import ID
@@ -176,7 +176,7 @@ func testAccObservabilityAdminTelemetryRule_Identity_regionOverride(t *testing.T
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateKind:   resource.ImportBlockWithID,
-				ImportStateIdFunc: acctest.CrossRegionAttrImportStateIdFunc(resourceName, "connector_id"),
+				ImportStateIdFunc: acctest.CrossRegionAttrImportStateIdFunc(resourceName, "rule_name"),
 				ImportPlanChecks: resource.ImportPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rule_name"), knownvalue.NotNull()),

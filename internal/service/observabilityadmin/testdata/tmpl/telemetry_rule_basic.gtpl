@@ -1,4 +1,4 @@
-resource "aws_observabilityadmin_telemetry_pipeline" "test" {
+resource "aws_observabilityadmin_telemetry_rule" "test" {
 {{- template "region" }}
 
   rule_name = var.rName

@@ -37,7 +37,7 @@ import (
 // @IdentityAttribute("rule_name")
 // @Testing(tagsTest=false)
 // @Testing(hasNoPreExistingResource=true)
-// @Testing(importStateIdAttribute="connector_id")
+// @Testing(importStateIdAttribute="rule_name")
 // @Testing(serialize=true)
 func newTelemetryRuleResource(_ context.Context) (resource.ResourceWithConfigure, error) {
 	r := &telemetryRuleResource{}
