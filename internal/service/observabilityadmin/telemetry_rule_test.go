@@ -21,12 +21,12 @@ import (
 	"github.com/hashicorp/terraform-provider-aws/names"
 )
 
-func TestAccObservabilityAdminTelemetryRule_basic(t *testing.T) {
+func testAccTelemetryRule_basic(t *testing.T) {
 	ctx := acctest.Context(t)
 	resourceName := "aws_observabilityadmin_telemetry_rule.test"
 	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
 
-	acctest.ParallelTest(ctx, t, resource.TestCase{
+	acctest.Test(ctx, t, resource.TestCase{
 		PreCheck:                 func() { acctest.PreCheck(ctx, t) },
 		ErrorCheck:               acctest.ErrorCheck(t, names.ObservabilityAdminServiceID),
 		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
@@ -58,19 +58,19 @@ func TestAccObservabilityAdminTelemetryRule_basic(t *testing.T) {
 	})
 }
 
-func TestAccObservabilityAdminTelemetryRule_disappears(t *testing.T) {
+func testAccTelemetryRule_disappears(t *testing.T) {
 	ctx := acctest.Context(t)
 	resourceName := "aws_observabilityadmin_telemetry_rule.test"
 	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
 
-	acctest.ParallelTest(ctx, t, resource.TestCase{
+	acctest.Test(ctx, t, resource.TestCase{
 		PreCheck:                 func() { acctest.PreCheck(ctx, t) },
 		ErrorCheck:               acctest.ErrorCheck(t, names.ObservabilityAdminServiceID),
 		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckTelemetryRuleDestroy(ctx, t),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccTelemetryRuleConfig_disappears(rName),
+				Config: testAccTelemetryRuleConfig_basic(rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckTelemetryRuleExists(ctx, t, resourceName),
 					acctest.CheckFrameworkResourceDisappears(ctx, t, tfobservabilityadmin.ResourceTelemetryRule, resourceName),
@@ -89,7 +89,7 @@ func TestAccObservabilityAdminTelemetryRule_disappears(t *testing.T) {
 	})
 }
 
-func TestAccObservabilityAdminTelemetryRule_tags(t *testing.T) {
+func testAccTelemetryRule_tags(t *testing.T) {
 	ctx := acctest.Context(t)
 	resourceName := "aws_observabilityadmin_telemetry_rule.test"
 	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
@@ -210,20 +210,11 @@ resource "aws_observabilityadmin_telemetry_rule" "test" {
     resource_type  = "AWS::EC2::VPC"
     telemetry_type = "Logs"
   }
-}
-`, rName)
+
+  depends_on = [aws_observabilityadmin_telemetry_evaluation.test]
 }
 
-func testAccTelemetryRuleConfig_disappears(rName string) string {
-	return fmt.Sprintf(`
-resource "aws_observabilityadmin_telemetry_rule" "test" {
-  rule_name = %[1]q
-
-  rule {
-    resource_type  = "AWS::EC2::VPC"
-    telemetry_type = "Logs"
-  }
-}
+resource "aws_observabilityadmin_telemetry_evaluation" "test" {}
 `, rName)
 }
 
@@ -240,7 +231,11 @@ resource "aws_observabilityadmin_telemetry_rule" "test" {
   tags = {
     %[2]q = %[3]q
   }
+
+  depends_on = [aws_observabilityadmin_telemetry_evaluation.test]
 }
+
+resource "aws_observabilityadmin_telemetry_evaluation" "test" {}
 `, rName, tagKey1, tagValue1)
 }
 
@@ -258,6 +253,10 @@ resource "aws_observabilityadmin_telemetry_rule" "test" {
     %[2]q = %[3]q
     %[4]q = %[5]q
   }
+
+  depends_on = [aws_observabilityadmin_telemetry_evaluation.test]
 }
+
+resource "aws_observabilityadmin_telemetry_evaluation" "test" {}
 `, rName, tagKey1, tagValue1, tagKey2, tagValue2)
 }
