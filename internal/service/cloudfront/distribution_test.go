@@ -1974,6 +1974,7 @@ func TestAccCloudFrontDistribution_cacheTagConfig(t *testing.T) {
 				},
 			},
 			{
+				// Update cache_tag_config.header_name
 				Config: testAccDistributionConfig_cacheTagConfig(false, false, "x-amz-meta-cache-tag2"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDistributionExists(ctx, t, resourceName, &distribution),
@@ -1982,6 +1983,7 @@ func TestAccCloudFrontDistribution_cacheTagConfig(t *testing.T) {
 				),
 			},
 			{
+				// Remove cache_tag_config block
 				Config: testAccDistributionConfig_enabled(false, false),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDistributionExists(ctx, t, resourceName, &distribution),
