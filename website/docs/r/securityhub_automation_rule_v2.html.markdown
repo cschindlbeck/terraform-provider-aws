@@ -95,22 +95,44 @@ This resource supports the following arguments:
 
 This resource exports the following attributes in addition to the arguments above:
 
-* `arn` - ARN of the automation rule.
+* `rule_arn` - ARN of the automation rule.
+* `rule_id` - ID of the automation rule.
 * `tags_all` - Map of tags assigned to the resource, including those inherited from the provider [`default_tags` configuration block](https://registry.terraform.io/providers/hashicorp/aws/latest/docs#default_tags-configuration-block).
 
 ## Import
 
-In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import a Security Hub V2 Automation Rule using its ARN. For example:
+In Terraform v1.12.0 and later, the [`import` block](https://developer.hashicorp.com/terraform/language/import) can be used with the `identity` attribute. For example:
 
 ```terraform
 import {
   to = aws_securityhub_automation_rule_v2.example
-  id = "arn:aws:securityhub:us-east-1:123456789012:automation-rule/v2/example-id"
+  identity = {
+    arn = "arn:aws:securityhub:us-east-1:123456789012:automation-rulev2/3efb04f4-e19e-4458-a698-62364ab7b1a7"
+  }
+}
+
+resource "aws_securityhub_automation_rule_v2" "example" {
+  ### Configuration omitted for brevity ###
 }
 ```
 
-Using `terraform import`, import a Security Hub V2 Automation Rule using its ARN. For example:
+### Identity Schema
+
+#### Required
+
+- `arn` (String) Amazon Resource Name (ARN) of the Security Hub V2 automation rule.
+
+In Terraform v1.5.0 and later, use an [`import` block](https://developer.hashicorp.com/terraform/language/import) to import Security Hub V2 automation rules using `arn`. For example:
+
+```terraform
+import {
+  to = aws_securityhub_automation_rule_v2.example
+  id = "arn:aws:securityhub:us-east-1:123456789012:automation-rulev2/3efb04f4-e19e-4458-a698-62364ab7b1a7"
+}
+```
+
+Using `terraform import`, import Security Hub V2 automation rules using `arn`. For example:
 
 ```console
-% terraform import aws_securityhub_automation_rule_v2.example arn:aws:securityhub:us-east-1:123456789012:automation-rule/v2/example-id
+% terraform import aws_securityhub_automation_rule_v2.example arn:aws:securityhub:us-east-1:123456789012:automation-rulev2/3efb04f4-e19e-4458-a698-62364ab7b1a7
 ```
