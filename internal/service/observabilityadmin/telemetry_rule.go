@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -35,10 +34,10 @@ import (
 
 // @FrameworkResource("aws_observabilityadmin_telemetry_rule", name="Telemetry Rule")
 // @Tags(identifierAttribute="rule_arn")
-// @Testing(existsType="github.com/aws/aws-sdk-go-v2/service/observabilityadmin;observabilityadmin;observabilityadmin.GetTelemetryRuleOutput")
-// @Testing(preCheck="testAccTelemetryRulePreCheck")
+// @IdentityAttribute("rule_name")
 // @Testing(tagsTest=false)
-// @Testing(generator=false)
+// @Testing(hasNoPreExistingResource=true)
+// @Testing(importStateIdAttribute="connector_id")
 func newTelemetryRuleResource(_ context.Context) (resource.ResourceWithConfigure, error) {
 	r := &telemetryRuleResource{}
 
@@ -52,6 +51,7 @@ func newTelemetryRuleResource(_ context.Context) (resource.ResourceWithConfigure
 type telemetryRuleResource struct {
 	framework.ResourceWithModel[telemetryRuleResourceModel]
 	framework.WithTimeouts
+	framework.WithImportByIdentity
 }
 
 func (r *telemetryRuleResource) Schema(ctx context.Context, request resource.SchemaRequest, response *resource.SchemaResponse) {
@@ -221,10 +221,6 @@ func (r *telemetryRuleResource) Delete(ctx context.Context, request resource.Del
 		smerr.AddError(ctx, &response.Diagnostics, err, smerr.ID, ruleName)
 		return
 	}
-}
-
-func (r *telemetryRuleResource) ImportState(ctx context.Context, request resource.ImportStateRequest, response *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("rule_name"), request, response)
 }
 
 func findTelemetryRuleByName(ctx context.Context, conn *observabilityadmin.Client, name string) (*observabilityadmin.GetTelemetryRuleOutput, error) {
