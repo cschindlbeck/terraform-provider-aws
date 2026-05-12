@@ -20,7 +20,7 @@ Trigger this skill when the user:
 
 Do **not** trigger for:
 - Edits to `CHANGELOG.md` directly (that file is generated — never modify it by hand).
-- PRs that are docs-only, test-only, code refactors, or dependency bumps with no operator-visible effect — see "Skip rules" below.
+- PRs that are docs-only, test-only, code refactors, or dependency bumps with no operator-visible effect.
 
 Do **not** generate a changelog file if the PR changes do not affect the terraform practitioners in the end.
 
