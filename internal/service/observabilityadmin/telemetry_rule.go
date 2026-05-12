@@ -155,7 +155,7 @@ func (r *telemetryRuleResource) Read(ctx context.Context, request resource.ReadR
 		return
 	}
 
-	smerr.AddEnrich(ctx, &response.Diagnostics, fwflex.Flatten(ctx, out, &data, fwflex.WithFieldNamePrefix("Memory")))
+	smerr.AddEnrich(ctx, &response.Diagnostics, fwflex.Flatten(ctx, out, &data, fwflex.WithFieldNamePrefix("Telemetry")))
 	if response.Diagnostics.HasError() {
 		return
 	}
@@ -235,7 +235,7 @@ func findTelemetryRuleByName(ctx context.Context, conn *observabilityadmin.Clien
 func findTelemetryRule(ctx context.Context, conn *observabilityadmin.Client, input *observabilityadmin.GetTelemetryRuleInput) (*observabilityadmin.GetTelemetryRuleOutput, error) {
 	output, err := conn.GetTelemetryRule(ctx, input)
 
-	if errs.IsA[*awstypes.ResourceNotFoundException](err) {
+	if errs.IsA[*awstypes.ResourceNotFoundException](err) || errs.IsAErrorMessageContains[*awstypes.ValidationException](err, "Telemetry evaluation is not enabled") {
 		return nil, &retry.NotFoundError{
 			LastError: err,
 		}

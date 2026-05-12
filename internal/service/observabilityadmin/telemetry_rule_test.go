@@ -94,7 +94,7 @@ func testAccTelemetryRule_tags(t *testing.T) {
 	resourceName := "aws_observabilityadmin_telemetry_rule.test"
 	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
 
-	acctest.ParallelTest(ctx, t, resource.TestCase{
+	acctest.Test(ctx, t, resource.TestCase{
 		PreCheck:                 func() { acctest.PreCheck(ctx, t) },
 		ErrorCheck:               acctest.ErrorCheck(t, names.ObservabilityAdminServiceID),
 		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
