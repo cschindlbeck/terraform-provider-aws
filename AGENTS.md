@@ -10,24 +10,24 @@ This file provides guidance to AI coding agents when working with code in this r
 This is the Go-based Terraform AWS Provider (`github.com/hashicorp/terraform-provider-aws`). It maps AWS API resources to Terraform resources, data sources, ephemeral resources and actions (collectively often referred to as just resources). The primary language is Go; HCL appears in acceptance test configurations and website documentation.
 
 ---
+
 ## Agent Registry
 
 This project uses specialized personas for different tasks.
 
 ### Available Personas
-
 - **`@contributor`**: [Contributor Persona](./.agents/contributor.md) - Contributes code in the form of bugfixes, enhancements to existing resources, and new resources. Makes clarifications and corrections to existing documentation.
 - **`@maintainer`**: [Maintainer Persona](./.agents/maintainer.md) - Steward of the project, responsible for both internal and external quality. Reviews contributions. Maintains provider-level features, including new Terraform language constructs.
 - **`@tcm`**: [TCM Persona](./.agents/tcm.md) - Triages incoming GitHub issues and PRs. Engages with community members to answer technical and process questions. Suggests workarounds and alternatives to reported bugs.
 
 ### Global Rules
-
 - Always use the requested persona for tasks.
 - If no persona is specified, default to `@contributor`.
 - A persona defines a role with a perspective and responsibilities.
 - Personas may invoke skills.
 
 ---
+
 ## Skills
 
 Skills are loaded from `./.agents/skills`. Each skill supplies step-by-step instructions, code patterns, and guardrails for a specific task.
@@ -36,10 +36,10 @@ Skills are loaded from `./.agents/skills`. Each skill supplies step-by-step inst
 |---|---|
 
 ---
+
 ## Global Rules
 
 ### Non-negotiables
-
 - Verification is a hard exit criterion for every task. Without it, the task is not done.
 - Prefer the boring, obvious solution.
 - Touch only what you’re asked to touch.
@@ -47,6 +47,7 @@ Skills are loaded from `./.agents/skills`. Each skill supplies step-by-step inst
 ### AI Usage Policy
 
 Per `docs/ai-usage.md`:
+
 - Disclose AI use in the PR description.
 - Include `🤖🤖🤖` in the PR title if an LLM agent is directly involved in submitting it.
 - The human PR author is fully responsible for all submitted code and must understand it completely.
@@ -142,6 +143,7 @@ skaff resource --name ExampleThing --service example
 ```
 
 After scaffolding:
+
 1. Fill in the schema and CRUD handlers.
 2. Add `@FrameworkResource("aws_example_thing", name="Example Thing")` annotation.
 3. Run `make gen` to register the resource.
@@ -152,7 +154,6 @@ Net-new resources must use Terraform Plugin Framework. Existing SDKv2 resources 
 ### Code Style and Conventions
 
 #### Naming
-
 - Service packages: `internal/service/<serviceidentifier>` — lowercase, no underscores, prefer the shorter AWS SDK/CLI name.
 - Go files: `snake_case.go`; data sources end with `_data_source.go`; tests end with `_test.go`.
 - Main constructors: `Resource<Name>()` and `DataSource<Name>()`.
@@ -166,19 +167,18 @@ Net-new resources must use Terraform Plugin Framework. Existing SDKv2 resources 
 Order: standard library → third-party → local. Enforced by `make import-lint`.
 
 Required aliases:
+
 - `github.com/hashicorp/terraform-plugin-sdk/v2/helper/id` → `sdkid`
 - `github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry` → `sdkretry`
 - `github.com/hashicorp/terraform-plugin-testing/helper/acctest` → `sdkacctest`
 - `github.com/hashicorp/terraform-provider-aws/internal/types` → `inttypes`
 
 #### Schema
-
 - Prefer `Optional: true` + `Computed: true` for attributes with server-side defaults; avoid provider defaults.
 - Use AWS SDK constants instead of duplicating string values.
 - For Framework resources, use `internal/framework/flex` AutoFlex before writing custom conversion code.
 
 #### Error Handling
-
 - Name error variables `err`; use early returns.
 - Wrap errors: `fmt.Errorf("doing thing: %w", err)`.
 - Use `tfawserr.ErrCodeEquals` / `tfawserr.ErrMessageContains` for AWS API error matching.
@@ -194,7 +194,6 @@ AutoFlex ignores `Tags` by default. Keep tagging logic separate.
 Must name the specific linter and explain why: `//nolint:staticcheck // reason`.
 
 ### Testing Conventions
-
 - Unit tests: `Test<FunctionName>` — no service name, usually no underscores, always call `t.Parallel()`.
 - Acceptance tests: `TestAcc<Service><Resource>_<case>` — e.g., `TestAccIAMRole_basic`, `TestAccIAMRole_tags`.
 - Serialized acceptance helpers: `testAcc<Resource>_<case>` (lowercase `t`, no service name).
@@ -203,7 +202,6 @@ Must name the specific linter and explain why: `//nolint:staticcheck // reason`.
 - Place unit tests before acceptance tests in the same file.
 
 ### Pre-PR Checklist
-
 1. `make quick-fix PKG=<service>` — auto-fix formatting, imports, HCL, copyright.
 2. `make test PKG=<service>` — unit tests pass.
 3. `make golangci-lint PKG=<service>` — no new lint errors.

@@ -33,16 +33,15 @@ resource "aws_securityhub_automation_rule_v2" "test" {
     CompositeOperator = "AND"
   })
 
-  actions_json = jsonencode([
-    {
-      Type = "FINDING_FIELDS_UPDATE"
-      FindingFieldsUpdate = {
-        SeverityId = 2
-        StatusId   = 1
-        Comment    = "Auto-updated by automation rule"
-      }
+  action {
+    type = "FINDING_FIELDS_UPDATE"
+
+    finding_fields_update {
+      severity_id = 2
+      status_id   = 1
+      comment     = "Auto-updated by automation rule"
     }
-  ])
+  }
 
   region = var.region
 
