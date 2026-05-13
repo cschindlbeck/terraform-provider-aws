@@ -58,6 +58,6 @@ variable "rName" {
 
 variable "resource_tags" {
   description = "Tags to set on resource. To specify no tags, set to `null`"
-  type     = map(string)
-  nullable = true
+  type        = map(string)
+  nullable    = true
 }
