@@ -86,7 +86,7 @@ func (r *automationRuleV2Resource) Schema(ctx context.Context, request resource.
 			names.AttrTagsAll: tftags.TagsAttributeComputedOnly(),
 		},
 		Blocks: map[string]schema.Block{
-			"action": schema.ListNestedBlock{
+			names.AttrAction: schema.ListNestedBlock{
 				CustomType: fwtypes.NewListNestedObjectTypeOf[automationRulesActionV2Model](ctx),
 				Validators: []validator.List{
 					listvalidator.IsRequired(),
@@ -127,7 +127,7 @@ func (r *automationRuleV2Resource) Schema(ctx context.Context, request resource.
 							Description: "Settings for updating finding fields.",
 							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{
-									"comment": schema.StringAttribute{
+									names.AttrComment: schema.StringAttribute{
 										Optional:    true,
 										Description: "A comment for the finding.",
 									},
