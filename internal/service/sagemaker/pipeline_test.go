@@ -18,7 +18,20 @@ import (
 	"github.com/hashicorp/terraform-provider-aws/names"
 )
 
-func TestAccSageMakerPipeline_basic(t *testing.T) {
+func TestAccSageMakerPipeline_serial(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]func(t *testing.T){
+		acctest.CtBasic:      testAccPipeline_basic,
+		"parallelism":        testAccPipeline_parallelism,
+		"tags":               testAccPipeline_tags,
+		acctest.CtDisappears: testAccPipeline_disappears,
+	}
+
+	acctest.RunSerialTests1Level(t, testCases, 0)
+}
+
+func testAccPipeline_basic(t *testing.T) {
 	ctx := acctest.Context(t)
 	var pipeline sagemaker.DescribePipelineOutput
 	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
@@ -64,7 +77,7 @@ func TestAccSageMakerPipeline_basic(t *testing.T) {
 	})
 }
 
-func TestAccSageMakerPipeline_parallelism(t *testing.T) {
+func testAccPipeline_parallelism(t *testing.T) {
 	ctx := acctest.Context(t)
 	var pipeline sagemaker.DescribePipelineOutput
 	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
@@ -94,7 +107,7 @@ func TestAccSageMakerPipeline_parallelism(t *testing.T) {
 	})
 }
 
-func TestAccSageMakerPipeline_tags(t *testing.T) {
+func testAccPipeline_tags(t *testing.T) {
 	ctx := acctest.Context(t)
 	var pipeline sagemaker.DescribePipelineOutput
 	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
@@ -140,7 +153,7 @@ func TestAccSageMakerPipeline_tags(t *testing.T) {
 	})
 }
 
-func TestAccSageMakerPipeline_disappears(t *testing.T) {
+func testAccPipeline_disappears(t *testing.T) {
 	ctx := acctest.Context(t)
 	var pipeline sagemaker.DescribePipelineOutput
 	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
