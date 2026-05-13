@@ -384,44 +384,6 @@ func findAutomationRuleV2(ctx context.Context, conn *securityhub.Client, input *
 	return output, nil
 }
 
-// stripV2Nulls recursively removes null values and empty strings from JSON-deserialized data.
-func stripV2Nulls(v any) any {
-	switch val := v.(type) {
-	case map[string]any:
-		cleaned := make(map[string]any)
-		for k, v2 := range val {
-			if v2 == nil {
-				continue
-			}
-			if s, ok := v2.(string); ok && s == "" {
-				continue
-			}
-			result := stripV2Nulls(v2)
-			if result != nil {
-				cleaned[k] = result
-			}
-		}
-		if len(cleaned) == 0 {
-			return nil
-		}
-		return cleaned
-	case []any:
-		var cleaned []any
-		for _, item := range val {
-			result := stripV2Nulls(item)
-			if result != nil {
-				cleaned = append(cleaned, result)
-			}
-		}
-		if len(cleaned) == 0 {
-			return nil
-		}
-		return cleaned
-	default:
-		return v
-	}
-}
-
 type automationRuleV2ResourceModel struct {
 	framework.WithRegionModel
 	Actions     fwtypes.ListNestedObjectValueOf[automationRulesActionV2Model] `tfsdk:"action"`
