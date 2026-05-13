@@ -31,22 +31,24 @@ resource "aws_securityhub_automation_rule_v2" "example" {
   rule_order  = 100
   rule_status = "ENABLED"
 
-  criteria_json = jsonencode({
-    CompositeFilters = [
-      {
-        StringFilters = [
-          {
-            FieldName = "metadata.product.name"
-            Filter = {
-              Comparison = "EQUALS"
-              Value      = "GuardDuty"
+  criteria {
+    ocsf_finding_criteria_json = jsonencode({
+      CompositeFilters = [
+        {
+          StringFilters = [
+            {
+              FieldName = "metadata.product.name"
+              Filter = {
+                Comparison = "EQUALS"
+                Value      = "GuardDuty"
+              }
             }
-          }
-        ]
-      }
-    ]
-    CompositeOperator = "AND"
-  })
+          ]
+        }
+      ]
+      CompositeOperator = "AND"
+    })
+  }
 
   action {
     type = "FINDING_FIELDS_UPDATE"
@@ -66,13 +68,13 @@ resource "aws_securityhub_automation_rule_v2" "example" {
 
 This resource supports the following arguments:
 
-* `region` - (Optional) Region where this resource will be [managed](https://docs.aws.amazon.com/general/latest/gr/rande.html#regional-endpoints). Defaults to the Region set in the [provider configuration](https://registry.terraform.io/providers/hashicorp/aws/latest/docs#aws-configuration-reference).
 * `rule_name` - (Required) The name of the automation rule.
 * `description` - (Required) A description of the automation rule.
 * `rule_order` - (Required) The priority of the rule. Lower values indicate higher priority.
 * `rule_status` - (Optional) The status of the rule. Valid values: `ENABLED`, `DISABLED`. Defaults to `ENABLED`.
-* `criteria_json` - (Required) JSON-encoded OCSF finding criteria for the rule. Uses `OcsfFindingFilters` structure with `CompositeFilters` and `CompositeOperator`.
+* `criteria` - (Required) Filtering type and configuration of the automation rule. See [`criteria`](#criteria) below.
 * `action` - (Required) Actions to take when the rule matches. Maximum of 1 action block. See [`action`](#action) below.
+* `region` - (Optional) Region where this resource will be [managed](https://docs.aws.amazon.com/general/latest/gr/rande.html#regional-endpoints). Defaults to the Region set in the [provider configuration](https://registry.terraform.io/providers/hashicorp/aws/latest/docs#aws-configuration-reference).
 * `tags` - (Optional) Map of tags to assign to the resource. If configured with a provider [`default_tags` configuration block](https://registry.terraform.io/providers/hashicorp/aws/latest/docs#default_tags-configuration-block) present, tags with matching keys will overwrite those defined at the provider-level.
 
 ### `action`
@@ -90,6 +92,10 @@ This resource supports the following arguments:
 ### `external_integration_configuration`
 
 * `connector_arn` - (Required) The ARN of the connector.
+
+### `criteria`
+
+* `ocsf_finding_criteria_json` - (Required) JSON-encoded OCSF finding criteria for the rule. See the [AWS API Reference](https://docs.aws.amazon.com/securityhub/1.0/APIReference/API_OcsfFindingFilters.html) for details.
 
 ## Attribute Reference
 

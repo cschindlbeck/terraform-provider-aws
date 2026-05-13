@@ -5,7 +5,6 @@ package securityhub
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -28,6 +27,7 @@ import (
 	"github.com/hashicorp/terraform-provider-aws/internal/framework"
 	fwflex "github.com/hashicorp/terraform-provider-aws/internal/framework/flex"
 	fwtypes "github.com/hashicorp/terraform-provider-aws/internal/framework/types"
+	tfjson "github.com/hashicorp/terraform-provider-aws/internal/json"
 	"github.com/hashicorp/terraform-provider-aws/internal/retry"
 	tftags "github.com/hashicorp/terraform-provider-aws/internal/tags"
 	"github.com/hashicorp/terraform-provider-aws/internal/tfresource"
@@ -41,7 +41,6 @@ import (
 // @Testing(serialize=true)
 // @Testing(tagsTest=false)
 // @Testing(hasNoPreExistingResource=true)
-// @Testing(generator=false)
 func newAutomationRuleV2Resource(_ context.Context) (resource.ResourceWithConfigure, error) {
 	return &automationRuleV2Resource{}, nil
 }
@@ -55,11 +54,6 @@ func (r *automationRuleV2Resource) Schema(ctx context.Context, request resource.
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			names.AttrARN: framework.ARNAttributeComputedOnly(),
-			"criteria_json": schema.StringAttribute{
-				CustomType:  jsontypes.NormalizedType{},
-				Required:    true,
-				Description: "JSON-encoded OCSF finding criteria for the rule.",
-			},
 			names.AttrDescription: schema.StringAttribute{
 				Required:    true,
 				Description: "A description of the automation rule.",
@@ -151,6 +145,24 @@ func (r *automationRuleV2Resource) Schema(ctx context.Context, request resource.
 					},
 				},
 			},
+			"criteria": schema.ListNestedBlock{
+				CustomType: fwtypes.NewListNestedObjectTypeOf[criteriaModel](ctx),
+				Validators: []validator.List{
+					listvalidator.IsRequired(),
+					listvalidator.SizeAtLeast(1),
+					listvalidator.SizeAtMost(1),
+				},
+				Description: "Filtering type and configuration of the automation rule.",
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"ocsf_finding_criteria_json": schema.StringAttribute{
+							CustomType:  jsontypes.NormalizedType{},
+							Required:    true,
+							Description: "JSON-encoded OCSF finding criteria for the rule.",
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -175,12 +187,19 @@ func (r *automationRuleV2Resource) Create(ctx context.Context, request resource.
 	input.ClientToken = aws.String(create.UniqueId(ctx))
 	input.Tags = getTagsIn(ctx)
 
-	var ocsfFilters awstypes.OcsfFindingFilters
-	if err := json.Unmarshal([]byte(data.CriteriaJSON.ValueString()), &ocsfFilters); err != nil {
-		response.Diagnostics.AddError("invalid criteria_json", err.Error())
+	criteria, diags := data.Criteria.ToPtr(ctx)
+	response.Diagnostics.Append(diags...)
+	if response.Diagnostics.HasError() {
 		return
 	}
-	input.Criteria = &awstypes.CriteriaMemberOcsfFindingCriteria{Value: ocsfFilters}
+	if criteria != nil {
+		var ocsfFindingFilters awstypes.OcsfFindingFilters
+		if err := tfjson.DecodeFromString(fwflex.StringValueFromFramework(ctx, criteria.OCSFFindingCriteriaJSON), &ocsfFindingFilters); err != nil {
+			response.Diagnostics.AddError("invalid ocsf_finding_criteria_json", err.Error())
+			return
+		}
+		input.Criteria = &awstypes.CriteriaMemberOcsfFindingCriteria{Value: ocsfFindingFilters}
+	}
 
 	output, err := conn.CreateAutomationRuleV2(ctx, &input)
 
@@ -261,12 +280,19 @@ func (r *automationRuleV2Resource) Update(ctx context.Context, request resource.
 		// Additional fields.
 		input.Identifier = aws.String(arn)
 
-		var ocsfFilters awstypes.OcsfFindingFilters
-		if err := json.Unmarshal([]byte(new.CriteriaJSON.ValueString()), &ocsfFilters); err != nil {
-			response.Diagnostics.AddError("invalid criteria_json", err.Error())
+		criteria, diags := new.Criteria.ToPtr(ctx)
+		response.Diagnostics.Append(diags...)
+		if response.Diagnostics.HasError() {
 			return
 		}
-		input.Criteria = &awstypes.CriteriaMemberOcsfFindingCriteria{Value: ocsfFilters}
+		if criteria != nil {
+			var ocsfFindingFilters awstypes.OcsfFindingFilters
+			if err := tfjson.DecodeFromString(fwflex.StringValueFromFramework(ctx, criteria.OCSFFindingCriteriaJSON), &ocsfFindingFilters); err != nil {
+				response.Diagnostics.AddError("invalid ocsf_finding_criteria_json", err.Error())
+				return
+			}
+			input.Criteria = &awstypes.CriteriaMemberOcsfFindingCriteria{Value: ocsfFindingFilters}
+		}
 
 		_, err := conn.UpdateAutomationRuleV2(ctx, &input)
 
@@ -306,6 +332,27 @@ func (r *automationRuleV2Resource) Delete(ctx context.Context, request resource.
 func (r *automationRuleV2Resource) flatten(ctx context.Context, automationRuleV2 *securityhub.GetAutomationRuleV2Output, data *automationRuleV2ResourceModel) diag.Diagnostics {
 	var diags diag.Diagnostics
 	diags.Append(fwflex.Flatten(ctx, automationRuleV2, data)...)
+
+	if v := automationRuleV2.Criteria; v != nil {
+		switch t := v.(type) {
+		case *awstypes.CriteriaMemberOcsfFindingCriteria:
+			v, err := tfjson.EncodeToBytes(t.Value)
+			if err != nil {
+				diags.AddError("invalid ocsf_finding_criteria_json", err.Error())
+				return diags
+			}
+			criteria, d := fwtypes.NewListNestedObjectValueOfPtr(ctx, &criteriaModel{
+				OCSFFindingCriteriaJSON: jsontypes.NewNormalizedValue(string(tfjson.RemoveEmptyStringFields(tfjson.RemoveEmptyFields(v)))),
+			})
+			diags.Append(d...)
+			if diags.HasError() {
+				return diags
+			}
+			data.Criteria = criteria
+		default:
+		}
+	}
+
 	return diags
 }
 
@@ -377,16 +424,16 @@ func stripV2Nulls(v any) any {
 
 type automationRuleV2ResourceModel struct {
 	framework.WithRegionModel
-	Actions      fwtypes.ListNestedObjectValueOf[automationRulesActionV2Model] `tfsdk:"action"`
-	CriteriaJSON jsontypes.Normalized                                          `tfsdk:"criteria_json"`
-	Description  types.String                                                  `tfsdk:"description"`
-	RuleARN      types.String                                                  `tfsdk:"arn"`
-	RuleID       types.String                                                  `tfsdk:"rule_id"`
-	RuleName     types.String                                                  `tfsdk:"rule_name"`
-	RuleOrder    types.Float64                                                 `tfsdk:"rule_order"`
-	RuleStatus   fwtypes.StringEnum[awstypes.RuleStatusV2]                     `tfsdk:"rule_status"`
-	Tags         tftags.Map                                                    `tfsdk:"tags"`
-	TagsAll      tftags.Map                                                    `tfsdk:"tags_all"`
+	Actions     fwtypes.ListNestedObjectValueOf[automationRulesActionV2Model] `tfsdk:"action"`
+	Criteria    fwtypes.ListNestedObjectValueOf[criteriaModel]                `tfsdk:"criteria" autoflex:"-"`
+	Description types.String                                                  `tfsdk:"description"`
+	RuleARN     types.String                                                  `tfsdk:"arn"`
+	RuleID      types.String                                                  `tfsdk:"rule_id"`
+	RuleName    types.String                                                  `tfsdk:"rule_name"`
+	RuleOrder   types.Float64                                                 `tfsdk:"rule_order"`
+	RuleStatus  fwtypes.StringEnum[awstypes.RuleStatusV2]                     `tfsdk:"rule_status"`
+	Tags        tftags.Map                                                    `tfsdk:"tags"`
+	TagsAll     tftags.Map                                                    `tfsdk:"tags_all"`
 }
 
 type automationRulesActionV2Model struct {
@@ -403,4 +450,8 @@ type automationRulesFindingFieldsUpdateV2Model struct {
 	Comment    types.String `tfsdk:"comment"`
 	SeverityID types.Int32  `tfsdk:"severity_id"`
 	StatusID   types.Int32  `tfsdk:"status_id"`
+}
+
+type criteriaModel struct {
+	OCSFFindingCriteriaJSON jsontypes.Normalized `tfsdk:"ocsf_finding_criteria_json"`
 }

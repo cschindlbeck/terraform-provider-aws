@@ -36,6 +36,7 @@ func testAccSecurityHubAutomationRuleV2_Identity_basic(t *testing.T) {
 
 	var v securityhub.GetAutomationRuleV2Output
 	resourceName := "aws_securityhub_automation_rule_v2.test"
+	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
 
 	acctest.Test(ctx, t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -49,7 +50,9 @@ func testAccSecurityHubAutomationRuleV2_Identity_basic(t *testing.T) {
 			// Step 1: Setup
 			{
 				ConfigDirectory: config.StaticDirectory("testdata/AutomationRuleV2/basic/"),
-				ConfigVariables: config.Variables{},
+				ConfigVariables: config.Variables{
+					acctest.CtRName: config.StringVariable(rName),
+				},
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAutomationRuleV2Exists(ctx, t, resourceName, &v),
 				),
@@ -64,8 +67,10 @@ func testAccSecurityHubAutomationRuleV2_Identity_basic(t *testing.T) {
 
 			// Step 2: Import command
 			{
-				ConfigDirectory:                      config.StaticDirectory("testdata/AutomationRuleV2/basic/"),
-				ConfigVariables:                      config.Variables{},
+				ConfigDirectory: config.StaticDirectory("testdata/AutomationRuleV2/basic/"),
+				ConfigVariables: config.Variables{
+					acctest.CtRName: config.StringVariable(rName),
+				},
 				ImportStateKind:                      resource.ImportCommandWithID,
 				ImportStateIdFunc:                    acctest.AttrImportStateIdFunc(resourceName, names.AttrARN),
 				ResourceName:                         resourceName,
@@ -76,8 +81,10 @@ func testAccSecurityHubAutomationRuleV2_Identity_basic(t *testing.T) {
 
 			// Step 3: Import block with Import ID
 			{
-				ConfigDirectory:   config.StaticDirectory("testdata/AutomationRuleV2/basic/"),
-				ConfigVariables:   config.Variables{},
+				ConfigDirectory: config.StaticDirectory("testdata/AutomationRuleV2/basic/"),
+				ConfigVariables: config.Variables{
+					acctest.CtRName: config.StringVariable(rName),
+				},
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateKind:   resource.ImportBlockWithID,
@@ -93,7 +100,9 @@ func testAccSecurityHubAutomationRuleV2_Identity_basic(t *testing.T) {
 			// Step 4: Import block with Resource Identity
 			{
 				ConfigDirectory: config.StaticDirectory("testdata/AutomationRuleV2/basic/"),
-				ConfigVariables: config.Variables{},
+				ConfigVariables: config.Variables{
+					acctest.CtRName: config.StringVariable(rName),
+				},
 				ResourceName:    resourceName,
 				ImportState:     true,
 				ImportStateKind: resource.ImportBlockWithResourceIdentity,
@@ -112,6 +121,7 @@ func testAccSecurityHubAutomationRuleV2_Identity_regionOverride(t *testing.T) {
 	ctx := acctest.Context(t)
 
 	resourceName := "aws_securityhub_automation_rule_v2.test"
+	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
 
 	acctest.Test(ctx, t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -126,7 +136,8 @@ func testAccSecurityHubAutomationRuleV2_Identity_regionOverride(t *testing.T) {
 			{
 				ConfigDirectory: config.StaticDirectory("testdata/AutomationRuleV2/region_override/"),
 				ConfigVariables: config.Variables{
-					"region": config.StringVariable(acctest.AlternateRegion()),
+					acctest.CtRName: config.StringVariable(rName),
+					"region":        config.StringVariable(acctest.AlternateRegion()),
 				},
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New(names.AttrRegion), knownvalue.StringExact(acctest.AlternateRegion())),
@@ -141,7 +152,8 @@ func testAccSecurityHubAutomationRuleV2_Identity_regionOverride(t *testing.T) {
 			{
 				ConfigDirectory: config.StaticDirectory("testdata/AutomationRuleV2/region_override/"),
 				ConfigVariables: config.Variables{
-					"region": config.StringVariable(acctest.AlternateRegion()),
+					acctest.CtRName: config.StringVariable(rName),
+					"region":        config.StringVariable(acctest.AlternateRegion()),
 				},
 				ImportStateKind:                      resource.ImportCommandWithID,
 				ImportStateIdFunc:                    acctest.CrossRegionAttrImportStateIdFunc(resourceName, names.AttrARN),
@@ -155,7 +167,8 @@ func testAccSecurityHubAutomationRuleV2_Identity_regionOverride(t *testing.T) {
 			{
 				ConfigDirectory: config.StaticDirectory("testdata/AutomationRuleV2/region_override/"),
 				ConfigVariables: config.Variables{
-					"region": config.StringVariable(acctest.AlternateRegion()),
+					acctest.CtRName: config.StringVariable(rName),
+					"region":        config.StringVariable(acctest.AlternateRegion()),
 				},
 				ImportStateKind:                      resource.ImportCommandWithID,
 				ImportStateIdFunc:                    acctest.AttrImportStateIdFunc(resourceName, names.AttrARN),
@@ -169,7 +182,8 @@ func testAccSecurityHubAutomationRuleV2_Identity_regionOverride(t *testing.T) {
 			{
 				ConfigDirectory: config.StaticDirectory("testdata/AutomationRuleV2/region_override/"),
 				ConfigVariables: config.Variables{
-					"region": config.StringVariable(acctest.AlternateRegion()),
+					acctest.CtRName: config.StringVariable(rName),
+					"region":        config.StringVariable(acctest.AlternateRegion()),
 				},
 				ResourceName:      resourceName,
 				ImportState:       true,
@@ -187,7 +201,8 @@ func testAccSecurityHubAutomationRuleV2_Identity_regionOverride(t *testing.T) {
 			{
 				ConfigDirectory: config.StaticDirectory("testdata/AutomationRuleV2/region_override/"),
 				ConfigVariables: config.Variables{
-					"region": config.StringVariable(acctest.AlternateRegion()),
+					acctest.CtRName: config.StringVariable(rName),
+					"region":        config.StringVariable(acctest.AlternateRegion()),
 				},
 				ResourceName:      resourceName,
 				ImportState:       true,
@@ -205,7 +220,8 @@ func testAccSecurityHubAutomationRuleV2_Identity_regionOverride(t *testing.T) {
 			{
 				ConfigDirectory: config.StaticDirectory("testdata/AutomationRuleV2/region_override/"),
 				ConfigVariables: config.Variables{
-					"region": config.StringVariable(acctest.AlternateRegion()),
+					acctest.CtRName: config.StringVariable(rName),
+					"region":        config.StringVariable(acctest.AlternateRegion()),
 				},
 				ResourceName:    resourceName,
 				ImportState:     true,

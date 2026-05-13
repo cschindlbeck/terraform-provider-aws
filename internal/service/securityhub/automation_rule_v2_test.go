@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	awstypes "github.com/aws/aws-sdk-go-v2/service/securityhub/types"
 	"github.com/hashicorp/aws-sdk-go-base/v2/endpoints"
+	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
@@ -38,7 +39,10 @@ func testAccAutomationRuleV2_basic(t *testing.T) {
 		CheckDestroy:             testAccCheckAutomationRuleV2Destroy(ctx, t),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAutomationRuleV2Config_basic(rName),
+				ConfigDirectory: config.StaticDirectory("testdata/AutomationRuleV2/basic/"),
+				ConfigVariables: config.Variables{
+					acctest.CtRName: config.StringVariable(rName),
+				},
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAutomationRuleV2Exists(ctx, t, resourceName, &rule),
 				),
@@ -52,13 +56,6 @@ func testAccAutomationRuleV2_basic(t *testing.T) {
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rule_id"), knownvalue.NotNull()),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rule_status"), tfknownvalue.StringExact(awstypes.RuleStatusV2Enabled)),
 				},
-			},
-			{
-				ImportStateIdFunc:                    acctest.AttrImportStateIdFunc(resourceName, names.AttrARN),
-				ResourceName:                         resourceName,
-				ImportState:                          true,
-				ImportStateVerify:                    true,
-				ImportStateVerifyIdentifierAttribute: names.AttrARN,
 			},
 		},
 	})
@@ -77,7 +74,10 @@ func testAccAutomationRuleV2_disappears(t *testing.T) {
 		CheckDestroy:             testAccCheckAutomationRuleV2Destroy(ctx, t),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAutomationRuleV2Config_basic(rName),
+				ConfigDirectory: config.StaticDirectory("testdata/AutomationRuleV2/basic/"),
+				ConfigVariables: config.Variables{
+					acctest.CtRName: config.StringVariable(rName),
+				},
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAutomationRuleV2Exists(ctx, t, resourceName, &rule),
 					acctest.CheckFrameworkResourceDisappears(ctx, t, tfsecurityhub.ResourceAutomationRuleV2, resourceName),
@@ -170,13 +170,6 @@ func testAccAutomationRuleV2_tags(t *testing.T) {
 						acctest.CtKey1: knownvalue.StringExact(acctest.CtValue1),
 					})),
 				},
-			},
-			{
-				ImportStateIdFunc:                    acctest.AttrImportStateIdFunc(resourceName, names.AttrARN),
-				ResourceName:                         resourceName,
-				ImportState:                          true,
-				ImportStateVerify:                    true,
-				ImportStateVerifyIdentifierAttribute: names.AttrARN,
 			},
 			{
 				Config: testAccAutomationRuleV2Config_tags2(rName, acctest.CtKey1, acctest.CtValue1Updated, acctest.CtKey2, acctest.CtValue2),
