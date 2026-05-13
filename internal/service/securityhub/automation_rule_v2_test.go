@@ -11,7 +11,6 @@ import (
 	"github.com/YakDriver/regexache"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
 	awstypes "github.com/aws/aws-sdk-go-v2/service/securityhub/types"
-	"github.com/hashicorp/aws-sdk-go-base/v2/endpoints"
 	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
@@ -109,7 +108,10 @@ func testAccAutomationRuleV2_update(t *testing.T) {
 		CheckDestroy:             testAccCheckAutomationRuleV2Destroy(ctx, t),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAutomationRuleV2Config_basic(rName),
+				ConfigDirectory: config.StaticDirectory("testdata/AutomationRuleV2/basic/"),
+				ConfigVariables: config.Variables{
+					acctest.CtRName: config.StringVariable(rName),
+				},
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAutomationRuleV2Exists(ctx, t, resourceName, &rule),
 				),
@@ -119,12 +121,16 @@ func testAccAutomationRuleV2_update(t *testing.T) {
 					},
 				},
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rule_status"), knownvalue.StringExact("ENABLED")),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New(names.AttrDescription), knownvalue.StringExact("test description")),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rule_order"), knownvalue.Float64Exact(100)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rule_status"), tfknownvalue.StringExact(awstypes.RuleStatusV2Enabled)),
 				},
 			},
 			{
-				Config: testAccAutomationRuleV2Config_updated(rName),
+				ConfigDirectory: config.StaticDirectory("testdata/AutomationRuleV2/update/"),
+				ConfigVariables: config.Variables{
+					acctest.CtRName: config.StringVariable(rName),
+				},
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAutomationRuleV2Exists(ctx, t, resourceName, &rule),
 				),
@@ -134,9 +140,9 @@ func testAccAutomationRuleV2_update(t *testing.T) {
 					},
 				},
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rule_status"), knownvalue.StringExact("DISABLED")),
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rule_order"), knownvalue.Float64Exact(200)),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New(names.AttrDescription), knownvalue.StringExact("updated description")),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rule_order"), knownvalue.Float64Exact(200)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rule_status"), tfknownvalue.StringExact(awstypes.RuleStatusV2Disabled)),
 				},
 			},
 		},
@@ -156,7 +162,13 @@ func testAccAutomationRuleV2_tags(t *testing.T) {
 		CheckDestroy:             testAccCheckAutomationRuleV2Destroy(ctx, t),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAutomationRuleV2Config_tags1(rName, acctest.CtKey1, acctest.CtValue1),
+				ConfigDirectory: config.StaticDirectory("testdata/AutomationRuleV2/tags/"),
+				ConfigVariables: config.Variables{
+					acctest.CtRName: config.StringVariable(rName),
+					acctest.CtResourceTags: config.MapVariable(map[string]config.Variable{
+						acctest.CtKey1: config.StringVariable(acctest.CtValue1),
+					}),
+				},
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAutomationRuleV2Exists(ctx, t, resourceName, &rule),
 				),
@@ -172,7 +184,14 @@ func testAccAutomationRuleV2_tags(t *testing.T) {
 				},
 			},
 			{
-				Config: testAccAutomationRuleV2Config_tags2(rName, acctest.CtKey1, acctest.CtValue1Updated, acctest.CtKey2, acctest.CtValue2),
+				ConfigDirectory: config.StaticDirectory("testdata/AutomationRuleV2/tags/"),
+				ConfigVariables: config.Variables{
+					acctest.CtRName: config.StringVariable(rName),
+					acctest.CtResourceTags: config.MapVariable(map[string]config.Variable{
+						acctest.CtKey1: config.StringVariable(acctest.CtValue1Updated),
+						acctest.CtKey2: config.StringVariable(acctest.CtValue2),
+					}),
+				},
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAutomationRuleV2Exists(ctx, t, resourceName, &rule),
 				),
@@ -189,7 +208,13 @@ func testAccAutomationRuleV2_tags(t *testing.T) {
 				},
 			},
 			{
-				Config: testAccAutomationRuleV2Config_tags1(rName, acctest.CtKey2, acctest.CtValue2),
+				ConfigDirectory: config.StaticDirectory("testdata/AutomationRuleV2/tags/"),
+				ConfigVariables: config.Variables{
+					acctest.CtRName: config.StringVariable(rName),
+					acctest.CtResourceTags: config.MapVariable(map[string]config.Variable{
+						acctest.CtKey2: config.StringVariable(acctest.CtValue2),
+					}),
+				},
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckAutomationRuleV2Exists(ctx, t, resourceName, &rule),
 				),
@@ -253,185 +278,4 @@ func testAccCheckAutomationRuleV2Destroy(ctx context.Context, t *testing.T) reso
 
 		return nil
 	}
-}
-
-func testAccAutomationRuleV2Config_base() string {
-	return fmt.Sprintf(`
-resource "aws_securityhub_account_v2" "test" {}
-
-resource "aws_securityhub_aggregator_v2" "test" {
-  region_linking_mode = "SPECIFIED_REGIONS"
-  linked_regions      = [%[1]q]
-
-  depends_on = [aws_securityhub_account_v2.test]
-}
-`, endpoints.UsEast1RegionID)
-}
-
-func testAccAutomationRuleV2Config_basic(rName string) string {
-	return acctest.ConfigCompose(testAccAutomationRuleV2Config_base(), fmt.Sprintf(`
-resource "aws_securityhub_automation_rule_v2" "test" {
-  rule_name   = %[1]q
-  description = "test description"
-  rule_order  = 100
-
-  criteria_json = jsonencode({
-    CompositeFilters = [
-      {
-        StringFilters = [
-          {
-            FieldName = "metadata.product.name"
-            Filter = {
-              Comparison = "EQUALS"
-              Value      = "GuardDuty"
-            }
-          }
-        ]
-      }
-    ]
-    CompositeOperator = "AND"
-  })
-
-  action {
-    type = "FINDING_FIELDS_UPDATE"
-
-    finding_fields_update {
-      severity_id = 2
-      status_id   = 1
-      comment     = "Auto-updated by automation rule"
-    }
-  }
-
-  depends_on = [aws_securityhub_aggregator_v2.test]
-}
-`, rName))
-}
-
-func testAccAutomationRuleV2Config_updated(rName string) string {
-	return acctest.ConfigCompose(testAccAutomationRuleV2Config_base(), fmt.Sprintf(`
-resource "aws_securityhub_automation_rule_v2" "test" {
-  rule_name   = %[1]q
-  description = "updated description"
-  rule_order  = 200
-  rule_status = "DISABLED"
-
-  criteria_json = jsonencode({
-    CompositeFilters = [
-      {
-        StringFilters = [
-          {
-            FieldName = "metadata.product.name"
-            Filter = {
-              Comparison = "EQUALS"
-              Value      = "Inspector"
-            }
-          }
-        ]
-      }
-    ]
-    CompositeOperator = "AND"
-  })
-
-  action {
-    type = "FINDING_FIELDS_UPDATE"
-
-    finding_fields_update {
-      severity_id = 3
-      status_id   = 2
-      comment     = "Updated by automation rule"
-    }
-  }
-
-  depends_on = [aws_securityhub_aggregator_v2.test]
-}
-`, rName))
-}
-
-func testAccAutomationRuleV2Config_tags1(rName, tagKey1, tagValue1 string) string {
-	return acctest.ConfigCompose(testAccAutomationRuleV2Config_base(), fmt.Sprintf(`
-resource "aws_securityhub_automation_rule_v2" "test" {
-  rule_name   = %[1]q
-  description = "test description"
-  rule_order  = 100
-  rule_status = "ENABLED"
-
-  criteria_json = jsonencode({
-    CompositeFilters = [
-      {
-        StringFilters = [
-          {
-            FieldName = "metadata.product.name"
-            Filter = {
-              Comparison = "EQUALS"
-              Value      = "GuardDuty"
-            }
-          }
-        ]
-      }
-    ]
-    CompositeOperator = "AND"
-  })
-
-  action {
-    type = "FINDING_FIELDS_UPDATE"
-
-    finding_fields_update {
-      severity_id = 2
-      status_id   = 1
-      comment     = "Auto-updated"
-    }
-  }
-
-  tags = {
-    %[2]q = %[3]q
-  }
-
-  depends_on = [aws_securityhub_aggregator_v2.test]
-}
-`, rName, tagKey1, tagValue1))
-}
-
-func testAccAutomationRuleV2Config_tags2(rName, tagKey1, tagValue1, tagKey2, tagValue2 string) string {
-	return acctest.ConfigCompose(testAccAutomationRuleV2Config_base(), fmt.Sprintf(`
-resource "aws_securityhub_automation_rule_v2" "test" {
-  rule_name   = %[1]q
-  description = "test description"
-  rule_order  = 100
-  rule_status = "ENABLED"
-
-  criteria_json = jsonencode({
-    CompositeFilters = [
-      {
-        StringFilters = [
-          {
-            FieldName = "metadata.product.name"
-            Filter = {
-              Comparison = "EQUALS"
-              Value      = "GuardDuty"
-            }
-          }
-        ]
-      }
-    ]
-    CompositeOperator = "AND"
-  })
-
-  action {
-    type = "FINDING_FIELDS_UPDATE"
-
-    finding_fields_update {
-      severity_id = 2
-      status_id   = 1
-      comment     = "Auto-updated"
-    }
-  }
-
-  tags = {
-    %[2]q = %[3]q
-    %[4]q = %[5]q
-  }
-
-  depends_on = [aws_securityhub_aggregator_v2.test]
-}
-`, rName, tagKey1, tagValue1, tagKey2, tagValue2))
 }

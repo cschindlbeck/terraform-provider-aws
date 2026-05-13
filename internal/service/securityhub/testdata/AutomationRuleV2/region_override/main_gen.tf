@@ -8,7 +8,6 @@ resource "aws_securityhub_automation_rule_v2" "test" {
   rule_name   = var.rName
   description = "test description"
   rule_order  = 100
-  rule_status = "ENABLED"
 
   criteria {
     ocsf_finding_criteria_json = jsonencode({
