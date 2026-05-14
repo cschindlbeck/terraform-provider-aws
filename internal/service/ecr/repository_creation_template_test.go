@@ -25,7 +25,7 @@ func TestAccECRRepositoryCreationTemplate_serial(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]func(t *testing.T){
-		"root":          testAccRepositoryCreationTemplate_root,
+		"root":           testAccRepositoryCreationTemplate_root,
 		"rootDataSource": testAccRepositoryCreationTemplateDataSource_root,
 	}
 
