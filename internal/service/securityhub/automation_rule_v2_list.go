@@ -85,8 +85,6 @@ type listAutomationRuleV2Model struct {
 	framework.WithRegionModel
 }
 
-// TIP: ==== LISTING FUNCTION ====
-// This listing function is written using an iterator pattern to handle pagination
 func listAutomationRuleV2s(ctx context.Context, conn *securityhub.Client, input *securityhub.ListAutomationRulesV2Input) iter.Seq2[awstypes.AutomationRulesMetadataV2, error] {
 	return func(yield func(awstypes.AutomationRulesMetadataV2, error) bool) {
 		var stopped bool
