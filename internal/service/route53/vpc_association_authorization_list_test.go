@@ -4,6 +4,7 @@
 package route53_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -31,6 +32,10 @@ func TestAccRoute53VPCAssociationAuthorization_List_basic(t *testing.T) {
 
 	identity1 := tfstatecheck.Identity()
 	identity2 := tfstatecheck.Identity()
+	zoneID1 := tfstatecheck.StateValue()
+	vpcID1 := tfstatecheck.StateValue()
+	zoneID2 := tfstatecheck.StateValue()
+	vpcID2 := tfstatecheck.StateValue()
 
 	acctest.ParallelTest(ctx, t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -54,6 +59,10 @@ func TestAccRoute53VPCAssociationAuthorization_List_basic(t *testing.T) {
 				ConfigStateChecks: []statecheck.StateCheck{
 					identity1.GetIdentity(resourceName1),
 					identity2.GetIdentity(resourceName2),
+					zoneID1.GetStateValue(resourceName1, tfjsonpath.New("zone_id")),
+					vpcID1.GetStateValue(resourceName1, tfjsonpath.New(names.AttrVPCID)),
+					zoneID2.GetStateValue(resourceName2, tfjsonpath.New("zone_id")),
+					vpcID2.GetStateValue(resourceName2, tfjsonpath.New(names.AttrVPCID)),
 				},
 			},
 
@@ -68,9 +77,11 @@ func TestAccRoute53VPCAssociationAuthorization_List_basic(t *testing.T) {
 				},
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					tfquerycheck.ExpectIdentityFunc("aws_route53_vpc_association_authorization.test", identity1.Checks()),
+					querycheck.ExpectResourceDisplayName("aws_route53_vpc_association_authorization.test", tfqueryfilter.ByResourceIdentityFunc(identity1.Checks()), knownvalue.StringExact(fmt.Sprintf("%s:%s", zoneID1.Value(), vpcID1.Value()))),
 					tfquerycheck.ExpectNoResourceObject("aws_route53_vpc_association_authorization.test", tfqueryfilter.ByResourceIdentityFunc(identity1.Checks())),
 
 					tfquerycheck.ExpectIdentityFunc("aws_route53_vpc_association_authorization.test", identity2.Checks()),
+					querycheck.ExpectResourceDisplayName("aws_route53_vpc_association_authorization.test", tfqueryfilter.ByResourceIdentityFunc(identity2.Checks()), knownvalue.StringExact(fmt.Sprintf("%s:%s", zoneID2.Value(), vpcID2.Value()))),
 					tfquerycheck.ExpectNoResourceObject("aws_route53_vpc_association_authorization.test", tfqueryfilter.ByResourceIdentityFunc(identity2.Checks())),
 				},
 			},
