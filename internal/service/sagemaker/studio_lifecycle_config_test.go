@@ -17,25 +17,13 @@ import (
 	"github.com/hashicorp/terraform-provider-aws/names"
 )
 
-func TestAccSageMakerStudioLifecycleConfig_serial(t *testing.T) {
-	t.Parallel()
-
-	testCases := map[string]func(t *testing.T){
-		acctest.CtBasic:      testAccStudioLifecycleConfig_basic,
-		"tags":               testAccStudioLifecycleConfig_tags,
-		acctest.CtDisappears: testAccStudioLifecycleConfig_disappears,
-	}
-
-	acctest.RunSerialTests1Level(t, testCases, 0)
-}
-
-func testAccStudioLifecycleConfig_basic(t *testing.T) {
+func TestAccSageMakerStudioLifecycleConfig_basic(t *testing.T) {
 	ctx := acctest.Context(t)
 	var config sagemaker.DescribeStudioLifecycleConfigOutput
 	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
 	resourceName := "aws_sagemaker_studio_lifecycle_config.test"
 
-	acctest.Test(ctx, t, resource.TestCase{
+	acctest.ParallelTest(ctx, t, resource.TestCase{
 		PreCheck:                 func() { acctest.PreCheck(ctx, t) },
 		ErrorCheck:               acctest.ErrorCheck(t, names.SageMakerServiceID),
 		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
@@ -61,13 +49,13 @@ func testAccStudioLifecycleConfig_basic(t *testing.T) {
 	})
 }
 
-func testAccStudioLifecycleConfig_tags(t *testing.T) {
+func TestAccSageMakerStudioLifecycleConfig_tags(t *testing.T) {
 	ctx := acctest.Context(t)
 	var config sagemaker.DescribeStudioLifecycleConfigOutput
 	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
 	resourceName := "aws_sagemaker_studio_lifecycle_config.test"
 
-	acctest.Test(ctx, t, resource.TestCase{
+	acctest.ParallelTest(ctx, t, resource.TestCase{
 		PreCheck:                 func() { acctest.PreCheck(ctx, t) },
 		ErrorCheck:               acctest.ErrorCheck(t, names.SageMakerServiceID),
 		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
@@ -107,13 +95,13 @@ func testAccStudioLifecycleConfig_tags(t *testing.T) {
 	})
 }
 
-func testAccStudioLifecycleConfig_disappears(t *testing.T) {
+func TestAccSageMakerStudioLifecycleConfig_disappears(t *testing.T) {
 	ctx := acctest.Context(t)
 	var config sagemaker.DescribeStudioLifecycleConfigOutput
 	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
 	resourceName := "aws_sagemaker_studio_lifecycle_config.test"
 
-	acctest.Test(ctx, t, resource.TestCase{
+	acctest.ParallelTest(ctx, t, resource.TestCase{
 		PreCheck:                 func() { acctest.PreCheck(ctx, t) },
 		ErrorCheck:               acctest.ErrorCheck(t, names.SageMakerServiceID),
 		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
