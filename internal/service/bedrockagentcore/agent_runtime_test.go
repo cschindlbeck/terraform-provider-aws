@@ -332,7 +332,7 @@ func TestAccBedrockAgentCoreAgentRuntime_filesystemSessionStorage(t *testing.T) 
 				},
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue(resourceName,
-						tfjsonpath.New("filesystem_configurations").AtSliceIndex(0).AtMapKey("session_storage").AtSliceIndex(0).AtMapKey("mount_path"),
+						tfjsonpath.New("filesystem_configuration").AtSliceIndex(0).AtMapKey("session_storage").AtSliceIndex(0).AtMapKey("mount_path"),
 						knownvalue.StringExact("/mnt/data")),
 				},
 			},
@@ -355,7 +355,7 @@ func TestAccBedrockAgentCoreAgentRuntime_filesystemSessionStorage(t *testing.T) 
 				},
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue(resourceName,
-						tfjsonpath.New("filesystem_configurations").AtSliceIndex(0).AtMapKey("session_storage").AtSliceIndex(0).AtMapKey("mount_path"),
+						tfjsonpath.New("filesystem_configuration").AtSliceIndex(0).AtMapKey("session_storage").AtSliceIndex(0).AtMapKey("mount_path"),
 						knownvalue.StringExact("/mnt/data2")),
 				},
 			},
@@ -1433,7 +1433,7 @@ resource "aws_bedrockagentcore_agent_runtime" "test" {
     network_mode = "PUBLIC"
   }
 
-  filesystem_configurations {
+  filesystem_configuration {
     session_storage {
       mount_path = %[3]q
     }

@@ -221,7 +221,7 @@ func (r *agentRuntimeResource) Schema(ctx context.Context, request resource.Sche
 				},
 			},
 			"authorizer_configuration": authorizerConfigurationSchema(ctx),
-			"filesystem_configurations": schema.ListNestedBlock{
+			"filesystem_configuration": schema.ListNestedBlock{
 				CustomType: fwtypes.NewListNestedObjectTypeOf[filesystemConfigurationModel](ctx),
 				Validators: []validator.List{
 					listvalidator.SizeAtMost(5),
@@ -760,7 +760,7 @@ type agentRuntimeResourceModel struct {
 	AuthorizerConfiguration    fwtypes.ListNestedObjectValueOf[authorizerConfigurationModel]    `tfsdk:"authorizer_configuration"`
 	Description                types.String                                                     `tfsdk:"description"`
 	EnvironmentVariables       fwtypes.MapOfString                                              `tfsdk:"environment_variables"`
-	FilesystemConfigurations   fwtypes.ListNestedObjectValueOf[filesystemConfigurationModel]    `tfsdk:"filesystem_configurations"`
+	FilesystemConfigurations   fwtypes.ListNestedObjectValueOf[filesystemConfigurationModel]    `tfsdk:"filesystem_configuration"`
 	LifecycleConfiguration     fwtypes.ListNestedObjectValueOf[lifecycleConfigurationModel]     `tfsdk:"lifecycle_configuration"`
 	NetworkConfiguration       fwtypes.ListNestedObjectValueOf[networkConfigurationModel]       `tfsdk:"network_configuration"`
 	ProtocolConfiguration      fwtypes.ListNestedObjectValueOf[protocolConfigurationModel]      `tfsdk:"protocol_configuration"`
