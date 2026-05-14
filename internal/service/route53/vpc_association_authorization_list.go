@@ -76,11 +76,12 @@ func (l *vpcAssociationAuthorizationListResource) List(ctx context.Context, requ
 			for _, vpc := range page.VPCs {
 				vpcID := aws.ToString(vpc.VPCId)
 				ctx := tflog.SetField(ctx, logging.ResourceAttributeKey(names.AttrVPCID), vpcID)
+				id := vpcAssociationAuthorizationCreateResourceID(zoneID, vpcID)
 
 				result := request.NewListResult(ctx)
 
 				rd := l.ResourceData()
-				rd.SetId(vpcAssociationAuthorizationCreateResourceID(zoneID, vpcID))
+				rd.SetId(id)
 				rd.Set("zone_id", zoneID)
 				rd.Set(names.AttrVPCID, vpcID)
 
@@ -88,7 +89,7 @@ func (l *vpcAssociationAuthorizationListResource) List(ctx context.Context, requ
 					resourceVPCAssociationAuthorizationFlatten(rd, zoneID, &vpc)
 				}
 
-				result.DisplayName = vpcID
+				result.DisplayName = id
 
 				l.SetResult(ctx, awsClient, request.IncludeResource, rd, &result)
 				if result.Diagnostics.HasError() {
