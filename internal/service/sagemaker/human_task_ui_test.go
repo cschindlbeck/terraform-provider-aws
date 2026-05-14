@@ -17,25 +17,13 @@ import (
 	"github.com/hashicorp/terraform-provider-aws/names"
 )
 
-func TestAccSageMakerHumanTaskUI_serial(t *testing.T) {
-	t.Parallel()
-
-	testCases := map[string]func(t *testing.T){
-		acctest.CtBasic:      testAccHumanTaskUI_basic,
-		"tags":               testAccHumanTaskUI_tags,
-		acctest.CtDisappears: testAccHumanTaskUI_disappears,
-	}
-
-	acctest.RunSerialTests1Level(t, testCases, 0)
-}
-
-func testAccHumanTaskUI_basic(t *testing.T) {
+func TestAccSageMakerHumanTaskUI_basic(t *testing.T) {
 	ctx := acctest.Context(t)
 	var humanTaskUi sagemaker.DescribeHumanTaskUiOutput
 	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
 	resourceName := "aws_sagemaker_human_task_ui.test"
 
-	acctest.Test(ctx, t, resource.TestCase{
+	acctest.ParallelTest(ctx, t, resource.TestCase{
 		PreCheck:                 func() { acctest.PreCheck(ctx, t) },
 		ErrorCheck:               acctest.ErrorCheck(t, names.SageMakerServiceID),
 		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
@@ -61,13 +49,13 @@ func testAccHumanTaskUI_basic(t *testing.T) {
 	})
 }
 
-func testAccHumanTaskUI_tags(t *testing.T) {
+func TestAccSageMakerHumanTaskUI_tags(t *testing.T) {
 	ctx := acctest.Context(t)
 	var humanTaskUi sagemaker.DescribeHumanTaskUiOutput
 	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
 	resourceName := "aws_sagemaker_human_task_ui.test"
 
-	acctest.Test(ctx, t, resource.TestCase{
+	acctest.ParallelTest(ctx, t, resource.TestCase{
 		PreCheck:                 func() { acctest.PreCheck(ctx, t) },
 		ErrorCheck:               acctest.ErrorCheck(t, names.SageMakerServiceID),
 		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
@@ -108,13 +96,13 @@ func testAccHumanTaskUI_tags(t *testing.T) {
 	})
 }
 
-func testAccHumanTaskUI_disappears(t *testing.T) {
+func TestAccSageMakerHumanTaskUI_disappears(t *testing.T) {
 	ctx := acctest.Context(t)
 	var humanTaskUi sagemaker.DescribeHumanTaskUiOutput
 	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
 	resourceName := "aws_sagemaker_human_task_ui.test"
 
-	acctest.Test(ctx, t, resource.TestCase{
+	acctest.ParallelTest(ctx, t, resource.TestCase{
 		PreCheck:                 func() { acctest.PreCheck(ctx, t) },
 		ErrorCheck:               acctest.ErrorCheck(t, names.SageMakerServiceID),
 		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
