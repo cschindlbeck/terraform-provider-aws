@@ -66,8 +66,7 @@ func TestAccIAMOpenIDConnectProvider_basic(t *testing.T) {
 }
 
 // Thumbprint tests all use the hardcoded accounts.google.com URL. Only one
-// OIDC provider per URL can exist per account, so these cannot run in
-// parallel.
+// OIDC provider per URL can exist per account.
 func TestAccIAMOpenIDConnectProvider_Thumbprints_serial(t *testing.T) {
 	t.Parallel()
 

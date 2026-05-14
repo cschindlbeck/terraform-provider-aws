@@ -95,7 +95,7 @@ func testAccAPNSSandboxChannelTokenConfigurationFromEnv(t *testing.T) *testAccAP
 }
 
 // APNS tests share credentials from environment variables tied to a single
-// Apple Developer identity. Concurrent registration would conflict.
+// Apple Developer identity.
 func TestAccPinpointAPNSSandboxChannel_serial(t *testing.T) {
 	t.Parallel()
 

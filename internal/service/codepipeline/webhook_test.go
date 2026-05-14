@@ -21,8 +21,7 @@ import (
 )
 
 // Webhook tests share the same GitHub OAuth token and target the same
-// external repo (lifesum-terraform/test). Parallel execution would cause
-// webhook registration conflicts at GitHub.
+// external repo (lifesum-terraform/test).
 func TestAccCodePipelineWebhook_serial(t *testing.T) {
 	t.Parallel()
 

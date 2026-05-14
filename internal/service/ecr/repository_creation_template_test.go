@@ -20,7 +20,7 @@ import (
 )
 
 // ROOT prefix is a per-registry singleton — only one template with prefix
-// "ROOT" can exist. These tests must be serialized to avoid conflicts.
+// "ROOT" can exist.
 func TestAccECRRepositoryCreationTemplate_serial(t *testing.T) {
 	t.Parallel()
 

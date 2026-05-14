@@ -1919,8 +1919,7 @@ func TestAccAthenaWorkGroup_monitoringConfiguration(t *testing.T) {
 	})
 }
 
-// SSO Admin is an account-level singleton. Tests that interact with Identity
-// Center configuration must not run in parallel.
+// SSO Admin is an account-level singleton.
 func TestAccAthenaWorkGroup_QueryResultsS3AccessGrantsConfiguration_serial(t *testing.T) {
 	t.Parallel()
 
