@@ -206,6 +206,16 @@ func (p *servicePackage) SDKListResources(ctx context.Context) iter.Seq[*inttype
 			),
 		},
 		{
+			Factory:  newVPCAssociationAuthorizationResourceAsListResource,
+			TypeName: "aws_route53_vpc_association_authorization",
+			Name:     "VPC Association Authorization",
+			Region:   inttypes.ResourceRegionDisabled(),
+			Identity: inttypes.GlobalParameterizedIdentity([]inttypes.IdentityAttribute{
+				inttypes.StringIdentityAttribute("zone_id", true),
+				inttypes.StringIdentityAttribute(names.AttrVPCID, true),
+			}),
+		},
+		{
 			Factory:  newZoneResourceAsListResource,
 			TypeName: "aws_route53_zone",
 			Name:     "Hosted Zone",
