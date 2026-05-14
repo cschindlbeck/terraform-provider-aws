@@ -221,6 +221,80 @@ func (r *agentRuntimeResource) Schema(ctx context.Context, request resource.Sche
 				},
 			},
 			"authorizer_configuration": authorizerConfigurationSchema(ctx),
+			"filesystem_configurations": schema.ListNestedBlock{
+				CustomType: fwtypes.NewListNestedObjectTypeOf[filesystemConfigurationModel](ctx),
+				Validators: []validator.List{
+					listvalidator.SizeAtMost(5),
+				},
+				NestedObject: schema.NestedBlockObject{
+					Blocks: map[string]schema.Block{
+						"efs_access_point": schema.ListNestedBlock{
+							CustomType: fwtypes.NewListNestedObjectTypeOf[efsAccessPointConfigurationModel](ctx),
+							Validators: []validator.List{
+								listvalidator.SizeAtMost(1),
+							},
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"access_point_arn": schema.StringAttribute{
+										Required:   true,
+										CustomType: fwtypes.ARNType,
+									},
+									"mount_path": schema.StringAttribute{
+										Required: true,
+										Validators: []validator.String{
+											stringvalidator.LengthBetween(6, 200),
+											stringvalidator.RegexMatches(regexache.MustCompile(`^/mnt/[a-zA-Z0-9._-]+/?$`), "must be under /mnt with exactly one subdirectory level"),
+										},
+									},
+								},
+							},
+						},
+						"s3_files_access_point": schema.ListNestedBlock{
+							CustomType: fwtypes.NewListNestedObjectTypeOf[s3FilesAccessPointConfigurationModel](ctx),
+							Validators: []validator.List{
+								listvalidator.SizeAtMost(1),
+							},
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"access_point_arn": schema.StringAttribute{
+										Required:   true,
+										CustomType: fwtypes.ARNType,
+									},
+									"mount_path": schema.StringAttribute{
+										Required: true,
+										Validators: []validator.String{
+											stringvalidator.LengthBetween(6, 200),
+											stringvalidator.RegexMatches(regexache.MustCompile(`^/mnt/[a-zA-Z0-9._-]+/?$`), "must be under /mnt with exactly one subdirectory level"),
+										},
+									},
+								},
+							},
+						},
+						"session_storage": schema.ListNestedBlock{
+							CustomType: fwtypes.NewListNestedObjectTypeOf[sessionStorageConfigurationModel](ctx),
+							Validators: []validator.List{
+								listvalidator.SizeAtMost(1),
+								listvalidator.ExactlyOneOf(
+									path.MatchRelative().AtParent().AtName("efs_access_point"),
+									path.MatchRelative().AtParent().AtName("s3_files_access_point"),
+									path.MatchRelative().AtParent().AtName("session_storage"),
+								),
+							},
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"mount_path": schema.StringAttribute{
+										Required: true,
+										Validators: []validator.String{
+											stringvalidator.LengthBetween(6, 200),
+											stringvalidator.RegexMatches(regexache.MustCompile(`^/mnt/[a-zA-Z0-9._-]+/?$`), "must be under /mnt with exactly one subdirectory level"),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			names.AttrNetworkConfiguration: schema.ListNestedBlock{
 				CustomType: fwtypes.NewListNestedObjectTypeOf[networkConfigurationModel](ctx),
 				Validators: []validator.List{
@@ -280,80 +354,6 @@ func (r *agentRuntimeResource) Schema(ctx context.Context, request resource.Sche
 						"request_header_allowlist": schema.SetAttribute{
 							CustomType: fwtypes.SetOfStringType,
 							Optional:   true,
-						},
-					},
-				},
-			},
-			"filesystem_configurations": schema.ListNestedBlock{
-				CustomType: fwtypes.NewListNestedObjectTypeOf[filesystemConfigurationModel](ctx),
-				Validators: []validator.List{
-					listvalidator.SizeAtMost(5),
-				},
-				NestedObject: schema.NestedBlockObject{
-					Blocks: map[string]schema.Block{
-						"session_storage": schema.ListNestedBlock{
-							CustomType: fwtypes.NewListNestedObjectTypeOf[sessionStorageConfigurationModel](ctx),
-							Validators: []validator.List{
-								listvalidator.SizeAtMost(1),
-								listvalidator.ExactlyOneOf(
-									path.MatchRelative().AtParent().AtName("session_storage"),
-									path.MatchRelative().AtParent().AtName("s3_files_access_point"),
-									path.MatchRelative().AtParent().AtName("efs_access_point"),
-								),
-							},
-							NestedObject: schema.NestedBlockObject{
-								Attributes: map[string]schema.Attribute{
-									"mount_path": schema.StringAttribute{
-										Required: true,
-										Validators: []validator.String{
-											stringvalidator.LengthBetween(6, 200),
-											stringvalidator.RegexMatches(regexache.MustCompile(`^/mnt/[a-zA-Z0-9._-]+/?$`), "must be under /mnt with exactly one subdirectory level"),
-										},
-									},
-								},
-							},
-						},
-						"s3_files_access_point": schema.ListNestedBlock{
-							CustomType: fwtypes.NewListNestedObjectTypeOf[s3FilesAccessPointConfigurationModel](ctx),
-							Validators: []validator.List{
-								listvalidator.SizeAtMost(1),
-							},
-							NestedObject: schema.NestedBlockObject{
-								Attributes: map[string]schema.Attribute{
-									"access_point_arn": schema.StringAttribute{
-										Required:   true,
-										CustomType: fwtypes.ARNType,
-									},
-									"mount_path": schema.StringAttribute{
-										Required: true,
-										Validators: []validator.String{
-											stringvalidator.LengthBetween(6, 200),
-											stringvalidator.RegexMatches(regexache.MustCompile(`^/mnt/[a-zA-Z0-9._-]+/?$`), "must be under /mnt with exactly one subdirectory level"),
-										},
-									},
-								},
-							},
-						},
-						"efs_access_point": schema.ListNestedBlock{
-							CustomType: fwtypes.NewListNestedObjectTypeOf[efsAccessPointConfigurationModel](ctx),
-							Validators: []validator.List{
-								listvalidator.SizeAtMost(1),
-							},
-							NestedObject: schema.NestedBlockObject{
-								Attributes: map[string]schema.Attribute{
-									"access_point_arn": schema.StringAttribute{
-										Required:   true,
-										CustomType: fwtypes.ARNType,
-									},
-									"mount_path": schema.StringAttribute{
-										Required: true,
-										Validators: []validator.String{
-											stringvalidator.LengthBetween(6, 200),
-											stringvalidator.RegexMatches(regexache.MustCompile(`^/mnt/[a-zA-Z0-9._-]+/?$`), "must be under /mnt with exactly one subdirectory level"),
-										},
-									},
-								},
-							},
 						},
 					},
 				},
@@ -841,9 +841,9 @@ func (m agentRuntimeArtifactModel) Expand(ctx context.Context) (any, diag.Diagno
 }
 
 type filesystemConfigurationModel struct {
-	SessionStorage     fwtypes.ListNestedObjectValueOf[sessionStorageConfigurationModel]     `tfsdk:"session_storage"`
+	EFSAccessPoint     fwtypes.ListNestedObjectValueOf[efsAccessPointConfigurationModel]     `tfsdk:"efs_access_point"`
 	S3FilesAccessPoint fwtypes.ListNestedObjectValueOf[s3FilesAccessPointConfigurationModel] `tfsdk:"s3_files_access_point"`
-	EfsAccessPoint     fwtypes.ListNestedObjectValueOf[efsAccessPointConfigurationModel]     `tfsdk:"efs_access_point"`
+	SessionStorage     fwtypes.ListNestedObjectValueOf[sessionStorageConfigurationModel]     `tfsdk:"session_storage"`
 }
 
 type sessionStorageConfigurationModel struct {
@@ -888,7 +888,7 @@ func (m *filesystemConfigurationModel) Flatten(ctx context.Context, v any) diag.
 		if diags.HasError() {
 			return diags
 		}
-		m.EfsAccessPoint = fwtypes.NewListNestedObjectValueOfPtrMust(ctx, &data)
+		m.EFSAccessPoint = fwtypes.NewListNestedObjectValueOfPtrMust(ctx, &data)
 
 	default:
 		diags.AddError(
@@ -926,8 +926,8 @@ func (m filesystemConfigurationModel) Expand(ctx context.Context) (any, diag.Dia
 			return nil, diags
 		}
 		return &r, diags
-	case !m.EfsAccessPoint.IsNull():
-		data, d := m.EfsAccessPoint.ToPtr(ctx)
+	case !m.EFSAccessPoint.IsNull():
+		data, d := m.EFSAccessPoint.ToPtr(ctx)
 		smerr.AddEnrich(ctx, &diags, d)
 		if diags.HasError() {
 			return nil, diags
