@@ -124,9 +124,7 @@ func resourceVPCAssociationAuthorizationRead(ctx context.Context, d *schema.Reso
 	}
 
 	output := outputRaw.(*awstypes.VPC)
-	d.Set(names.AttrVPCID, output.VPCId)
-	d.Set("vpc_region", output.VPCRegion)
-	d.Set("zone_id", zoneID)
+	resourceVPCAssociationAuthorizationFlatten(d, zoneID, output)
 
 	return diags
 }
@@ -160,6 +158,12 @@ func resourceVPCAssociationAuthorizationDelete(ctx context.Context, d *schema.Re
 	}
 
 	return diags
+}
+
+func resourceVPCAssociationAuthorizationFlatten(d *schema.ResourceData, zoneID string, vpc *awstypes.VPC) {
+	d.Set(names.AttrVPCID, vpc.VPCId)
+	d.Set("vpc_region", vpc.VPCRegion)
+	d.Set("zone_id", zoneID)
 }
 
 const vpcAssociationAuthorizationResourceIDSeparator = ":"
