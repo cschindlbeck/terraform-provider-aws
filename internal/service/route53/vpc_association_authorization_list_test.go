@@ -24,8 +24,8 @@ import (
 func TestAccRoute53VPCAssociationAuthorization_List_basic(t *testing.T) {
 	ctx := acctest.Context(t)
 
-	resourceName1 := "aws_route53_vpc_association_authorization.test.0"
-	resourceName2 := "aws_route53_vpc_association_authorization.test.1"
+	resourceName1 := "aws_route53_vpc_association_authorization.test[0]"
+	resourceName2 := "aws_route53_vpc_association_authorization.test[1]"
 	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
 	providers := make(map[string]*schema.Provider)
 
@@ -81,7 +81,7 @@ func TestAccRoute53VPCAssociationAuthorization_List_basic(t *testing.T) {
 func TestAccRoute53VPCAssociationAuthorization_List_includeResource(t *testing.T) {
 	ctx := acctest.Context(t)
 
-	resourceName1 := "aws_route53_vpc_association_authorization.test.0"
+	resourceName1 := "aws_route53_vpc_association_authorization.test[0]"
 	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
 	providers := make(map[string]*schema.Provider)
 
